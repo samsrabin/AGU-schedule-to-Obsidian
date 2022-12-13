@@ -514,7 +514,7 @@ if not browser:
 thisDir = "/Users/sam/Documents/Dropbox/2016_KIT/Fire/FURNACES/FFF-Fire_forest_mgmt_Florence/writing/AGU2021/schedule"
 session_urls = []
 f = 0
-for file in glob.glob(f"{thisDir}/*.ics"):
+for file in glob.glob(path.join(thisDir, "*.ics")):
     f = f + 1
     this_ics = open(file, "rb")
     cal = ic.Calendar.from_ical(this_ics.read())
