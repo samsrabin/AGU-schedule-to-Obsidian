@@ -444,8 +444,6 @@ def get_session(url, browser=None, replace=False, get_presentations=False, has_a
                         browser2 = start_browser()
                 except:
                     browser2 = start_browser()
-                if paper_url == "https://agu.confex.com/agu/fm22/meetingapp.cgi/Paper/1214892":
-                    continue
                 get_presentation(paper_url, [], browser2, title=paper_title, has_abstract=has_abstract)
             
             paper_cancelled = find_or_none(paper, "cancelled")
