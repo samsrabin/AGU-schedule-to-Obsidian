@@ -4,7 +4,7 @@ import glob
 import icalendar as ic
 import regex as re
 import time
-from os import path, rename, remove, chdir
+from os import path, rename, remove, chdir, makedirs
 from datetime import datetime
 from zipfile import ZipFile
 
@@ -14,7 +14,9 @@ from selenium.webdriver.support import expected_conditions as EC
 from selenium.webdriver.common.by import By
 from selenium.common.exceptions import TimeoutException
 
-outDir = "/Users/sam/Documents/Dropbox/Apps/Obsidian/Conferences-Workshops-Mtgs/AGU2022"
+outDir = "/Users/sam/Documents/Dropbox/Apps/Obsidian/Conferences-Workshops-Mtgs/AGU2023"
+if not path.exists(outDir):
+    makedirs(outDir)
 chdir(outDir)
 
 browser = None
