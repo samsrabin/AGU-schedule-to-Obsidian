@@ -527,13 +527,6 @@ for file in glob.glob(f"{thisDir}/*.ics"):
         if component.name == "VEVENT":
             e = e + 1
             
-            
-            
-            if f==1 or (f==2 and e < 23):
-                continue
-            
-            
-            
             # Get URL and type (Paper or Session) of schedule entry
             uid = component.get("uid").replace(" ","")
             urlid, slot = uid.split("_")
