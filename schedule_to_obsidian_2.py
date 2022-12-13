@@ -91,10 +91,15 @@ def get_presentation(url, session_urls, browser=None, replace=False, title=None,
     browser.get(url)
     # time.sleep(5)
     delay = 30 # seconds
+    abstract_failed = False
     try:
         WebDriverWait(browser, delay).until(EC.presence_of_element_located((By.CLASS_NAME, "field_ParentList_ParentEntries")))
         if has_abstract:
-            WebDriverWait(browser, delay).until(EC.presence_of_element_located((By.CLASS_NAME, "field_Abstract")))
+            try:
+                WebDriverWait(browser, delay).until(EC.presence_of_element_located((By.CLASS_NAME, "field_Abstract")))
+            except TimeoutException:
+                has_abstract = False
+                abstract_failed = True
         if not author_list2:
             WebDriverWait(browser, delay).until(EC.presence_of_element_located((By.CLASS_NAME, "RoleListItem")))
     except TimeoutException:
@@ -127,6 +132,8 @@ def get_presentation(url, session_urls, browser=None, replace=False, title=None,
         code = f"{parent_session_code}-XX"
     if not printed_title:
         print(f"Importing presentation: {title}")
+    if abstract_failed:
+        print("(No abstract found)")
     if verbose:
         print(f"Code: {code}")
         print(f"Title: {title}")
