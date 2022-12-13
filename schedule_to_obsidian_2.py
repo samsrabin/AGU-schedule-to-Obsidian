@@ -14,7 +14,7 @@ from selenium.webdriver.support import expected_conditions as EC
 from selenium.webdriver.common.by import By
 from selenium.common.exceptions import TimeoutException
 
-outDir = "/Users/sam/Documents/Dropbox/Apps/Obsidian/Conferences-Workshops-Mtgs/AGU2023"
+outDir = "/Users/sam/Documents/Dropbox/Apps/Obsidian/Conferences-Workshops-Mtgs/AGU2022"
 if not path.exists(outDir):
     makedirs(outDir)
 chdir(outDir)
@@ -471,7 +471,7 @@ def get_session(url, browser=None, replace=False, get_presentations=False, has_a
 
 # %% Import a given URL
 
-url = "https://agu.confex.com/agu/fm22/meetingapp.cgi/Session/157028"
+url = "https://agu.confex.com/agu/fm22/meetingapp.cgi/Paper/1214892"
 has_abstract = True
 author_list2 = ""
 
@@ -494,7 +494,7 @@ get_session(session_url[0], browser)
 
 # %% Import an entire session's presentations
 
-session_url = "https://agu.confex.com/agu/fm22/meetingapp.cgi/Session/157028"
+session_url = "https://agu.confex.com/agu/fm22/meetingapp.cgi/Session/161615"
 has_abstract = True
 
 try:
