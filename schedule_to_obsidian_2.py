@@ -141,7 +141,6 @@ def get_presentation(url, session_urls, browser=None, replace=False, title=None,
     # Replace illegal characters for Obsidian filenames
     filename = codetitle_to_filename(code, title)
     filename_md = filename + ".md"
-    # output_file = f"{outDir}/{filename_md}"
     output_file = filename_md
     if verbose:
         print(f"Output file: {output_file}")
@@ -301,7 +300,6 @@ def get_session(url, browser=None, replace=False, get_presentations=False, has_a
     # Replace illegal characters for Obsidian filenames
     filename = codetitle_to_filename(session_code, session_title)
     filename_md = filename + ".md"
-    # output_file = f"{outDir}/_{filename_md}"
     output_file = "_" + filename_md
     if verbose:
         print(f"Filename: {output_file}")
