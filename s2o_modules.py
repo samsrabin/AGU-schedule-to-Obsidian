@@ -1,3 +1,4 @@
+thisYear = 2022
 outDir = "/Users/sam/Documents/Dropbox/Apps/Obsidian/Conferences-Workshops-Mtgs/AGU2023"
 chrome_binary = "/Applications/Google Chrome.app/Contents/MacOS/Google Chrome"
 chrome_driver_binary = "/opt/homebrew/bin/chromedriver"
@@ -245,7 +246,7 @@ def get_presentation(url, session_urls, browser=None, replace=False, title=None,
         print(f"{event_date} ({event_day}) at {event_time} in {location}")
     
     with open(output_file, 'w') as outFile:
-        outFile.write("#seminar #AGU2021 #AGU\n")
+        outFile.write(f"#seminar #AGU{thisYear} #AGU\n")
         outFile.write(f"Parent session: [[{parent_session_filename}|{parent_session_title}]]\n\n")
         outFile.write(f"# [{title}]({url})\n")
         outFile.write(f"{author_list2}\n")
@@ -381,7 +382,7 @@ def get_session(url, browser=None, replace=False, get_presentations=False, has_a
     
     if not path.isfile(output_file) or replace:
         with open(output_file, 'w') as outFile:
-            outFile.write("#seminar #AGU2021 #AGU\n")
+            outFile.write(f"#seminar #AGU{thisYear} #AGU\n")
             outFile.write(f"# [{session_title}]({url})\n")
             outFile.write(f"{person_names2}\n")
             outFile.write(f"{affil_list}\n\n")
