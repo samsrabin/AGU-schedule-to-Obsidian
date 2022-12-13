@@ -532,7 +532,7 @@ for file in glob.glob(f"{thisDir}/*.ics"):
             urlid, slot = uid.split("_")
             entrytype = re.findall("^[A-Za-z]+", uid)[0]
             urlid = urlid.replace(entrytype, "")
-            url = f"https://agu.confex.com/agu/fm21/meetingapp.cgi/{entrytype}/{urlid}"
+            url = f"https://agu.confex.com/agu/fm22/meetingapp.cgi/{entrytype}/{urlid}"
             
             # If this schedule entry is a session, save its relative URL for later, then skip
             # to the next schedule entry.
