@@ -1,6 +1,10 @@
 thisYear = 2022
 outDir = "/Users/sam/Documents/Dropbox/Apps/Obsidian/Conferences-Workshops-Mtgs/AGU2023"
 chrome_binary = "/Applications/Google Chrome.app/Contents/MacOS/Google Chrome"
+
+# Mac: If you have homebrew, just do "brew install --cask chromedriver" and this should work.
+# Otherwise: Download other Chromium and Chrome Driver binaries at https://vikyd.github.io/download-chromium-history-version/#/
+# Download the version matching your system.
 chrome_driver_binary = "/opt/homebrew/bin/chromedriver"
 
 import glob
@@ -29,7 +33,7 @@ def start_browser():
     options.binary_location = chrome_binary
     
     # start chrome browser
-    # Download other Chromium and Chrome Driver binaries at https://vikyd.github.io/download-chromium-history-version/#/
+    
     browser = webdriver.Chrome(chrome_driver_binary, options=options)
     tz_params = {'timezoneId': 'America/Chicago'}
     browser.execute_cdp_cmd('Emulation.setTimezoneOverride', tz_params)
