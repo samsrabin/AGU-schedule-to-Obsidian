@@ -7,6 +7,7 @@ import time
 from os import path, rename, remove, chdir, makedirs
 from datetime import datetime
 from zipfile import ZipFile
+import sys
 
 from selenium import webdriver
 from selenium.webdriver.support.ui import WebDriverWait
@@ -14,7 +15,7 @@ from selenium.webdriver.support import expected_conditions as EC
 from selenium.webdriver.common.by import By
 from selenium.common.exceptions import TimeoutException
 
-outDir = "/Users/sam/Documents/Dropbox/Apps/Obsidian/Conferences-Workshops-Mtgs/AGU2022"
+outDir = "/Users/sam/Documents/git_repos/schedule_to_obsidian/archive/test"
 if not path.exists(outDir):
     makedirs(outDir)
 chdir(outDir)
@@ -470,89 +471,20 @@ def get_session(url, browser=None, replace=False, get_presentations=False, has_a
 
 
 
-
-# %% Import a given URL
-
-url = "https://agu.confex.com/agu/fm22/meetingapp.cgi/Paper/1214892"
-has_abstract = True
-author_list2 = ""
-
-try:
-    if not browser:
+def main():
+    try:
+        if not browser:
+            browser = start_browser()
+    except:
         browser = start_browser()
-except:
-    browser = start_browser()
-
-# If this schedule entry is a session, save its relative URL for later, then skip
-# to the next schedule entry.
-entrytype = url.split("/")[-2]
-if entrytype == "Session":
-    session_url = url
-else:
-    session_url = get_presentation(url, [], browser, has_abstract=has_abstract, author_list2=author_list2)
-
-get_session(session_url[0], browser)
+    for url in sys.argv[1:]:
+        entrytype = url.split("/")[-2]
+        if entrytype == "Session":
+            session_url = url
+        else:
+            session_url = get_presentation(url)
+        get_session(session_url, browser, get_presentations=True, has_abstract=True)
 
 
-# %% Import an entire session's presentations
-
-session_url = "https://agu.confex.com/agu/fm22/meetingapp.cgi/Session/161615"
-has_abstract = True
-
-try:
-    if not browser:
-        browser = start_browser()
-except:
-    browser = start_browser()
-
-get_session(session_url, browser, get_presentations=True, has_abstract=has_abstract)
-
-
-# %% Import from .ics
-
-if not browser:
-    browser = start_browser()
-
-thisDir = "/Users/sam/Documents/Dropbox/2016_KIT/Fire/FURNACES/FFF-Fire_forest_mgmt_Florence/writing/AGU2021/schedule"
-session_urls = []
-f = 0
-for file in glob.glob(path.join(thisDir, "*.ics")):
-    f = f + 1
-    this_ics = open(file, "rb")
-    cal = ic.Calendar.from_ical(this_ics.read())
-    e = 0
-    for component in cal.walk():
-        if component.name == "VEVENT":
-            e = e + 1
-            
-            # Get URL and type (Paper or Session) of schedule entry
-            uid = component.get("uid").replace(" ","")
-            urlid, slot = uid.split("_")
-            entrytype = re.findall("^[A-Za-z]+", uid)[0]
-            urlid = urlid.replace(entrytype, "")
-            url = f"https://agu.confex.com/agu/fm22/meetingapp.cgi/{entrytype}/{urlid}"
-            
-            # If this schedule entry is a session, save its relative URL for later, then skip
-            # to the next schedule entry.
-            if entrytype == "Session":
-                if url not in session_urls:
-                    session_urls = session_urls + [url]
-                continue
-            
-            session_urls = get_presentation( \
-                url, session_urls, browser, replace=False)
-    this_ics.close()
-            
-# %% Import a list of sessions
-
-session_urls = ['https://agu.confex.com/agu/fm22/meetingapp.cgi/Session/167650',
-                'https://agu.confex.com/agu/fm22/meetingapp.cgi/Session/167727',
-                'https://agu.confex.com/agu/fm22/meetingapp.cgi/Session/177101']
-
-for session_url in session_urls:    
-    get_session(session_url, browser, get_presentations=True, replace=False)
-    
-print('Done.')
-
-
-
+if __name__ == "__main__":
+    main()
