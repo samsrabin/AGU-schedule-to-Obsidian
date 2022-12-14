@@ -11,6 +11,8 @@ I provide a pre-compiled, packaged Python binary that I have tested on my Apple 
 ```
 $ ./agu-notes-from-url https://agu.confex.com/agu/fm22/meetingapp.cgi/Session/168112
 ```
+(If you get a permissions error, try doing `chmod +x agu-notes-from-url` and try again. You should only have to do that once.)
+
 If you have some other kind of machine, you'll need to run the script using Python:
 ```
 $ python3 agu-notes-from-url.py https://agu.confex.com/agu/fm22/meetingapp.cgi/Session/168112
