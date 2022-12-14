@@ -21,14 +21,28 @@ def resource_path(relative_path: str) -> str:
         base_path = path.dirname(__file__)
     return path.join(base_path, relative_path)
 
-# Get settings
-config = ConfigParser()
-config.read("settings.ini")
-thisYear = config.get("thisyear", "year")
-if config.has_option("chromedriver", "path"):
-    chrome_driver_binary = resource_path(config.get("chromedriver", "path"))
-else:
-    chrome_driver_binary = resource_path("driver/chromedriver")
+# Set defaults
+thisYear = datetime.now().year
+chrome_driver_binary = "driver/chromedriver"
+
+# Read settings file
+settings_file = "settings.ini"
+if path.exists(settings_file):
+    config = ConfigParser()
+    config.read(settings_file)
+    if config.has_option("thisyear", "year"):
+        thisYear = config.get("thisyear", "year")    
+    if config.has_option("chromedriver", "path"):
+        chrome_driver_binary = config.get("chromedriver", "path")
+    if config.has_option("outdir", "path"):
+        outDir = config.get("outdir", "path")
+        if not path.exists(outDir):
+            makedirs(outDir)
+        chdir(outDir)
+
+# Finish
+chrome_driver_binary = resource_path(chrome_driver_binary)
+
 
 def start_browser():
 
@@ -500,12 +514,6 @@ def get_session(url, browser=None, replace=False, get_presentations=False, has_a
 
 
 def main():
-    
-    # Set up output directory
-    outDir = config.get("outdir", "path")
-    if not path.exists(outDir):
-        makedirs(outDir)
-    chdir(outDir)
     
     try:
         if not browser:
