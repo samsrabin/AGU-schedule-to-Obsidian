@@ -1,5 +1,3 @@
-import glob
-import icalendar as ic
 import regex as re
 import time
 from os import path, rename, remove, chdir, makedirs
