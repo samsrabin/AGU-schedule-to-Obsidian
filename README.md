@@ -1,6 +1,6 @@
 # Download AGU sessions as notes for Obsidian
 
-Given one or more URLs, makes a set of Markown files for use in Obsidian. E.g.:
+Given one or more URLs, makes a set of Markdown files for use in Obsidian. E.g.:
 
 <img width="978" alt="Example note or an AGU session." src="https://user-images.githubusercontent.com/10454527/207506110-68ac370a-a30f-4150-9c0c-0f06484761ae.png">
 
@@ -39,6 +39,7 @@ year = 2022
 Running the script with Python requires that your Python have the following non-standard modules installed:
 - `regex`
 - `selenium`
+
 If you get a `ModuleNotFoundError` for either of those, you can install them like so:
 ```
 python3 -m pip install regex
