@@ -489,7 +489,7 @@ def main():
         if entrytype == "Session":
             session_url = url
         else:
-            session_url = get_presentation(url)
+            session_url = get_presentation(url, [])[0]
         get_session(session_url, browser, get_presentations=True, has_abstract=True)
 
 
