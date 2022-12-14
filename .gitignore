@@ -1,2 +1,6 @@
 __pycache__/
 archive/
+dist/
+build/
+driver/
+notes/
