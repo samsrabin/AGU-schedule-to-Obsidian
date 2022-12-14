@@ -1,5 +1,3 @@
-# %%
-
 import glob
 import icalendar as ic
 import regex as re
@@ -8,6 +6,7 @@ from os import path, rename, remove, chdir, makedirs
 from datetime import datetime
 from zipfile import ZipFile
 import sys
+from configparser import ConfigParser
 
 from selenium import webdriver
 from selenium.webdriver.support.ui import WebDriverWait
@@ -15,14 +14,15 @@ from selenium.webdriver.support import expected_conditions as EC
 from selenium.webdriver.common.by import By
 from selenium.common.exceptions import TimeoutException
 
-outDir = "/Users/sam/Documents/git_repos/schedule_to_obsidian/archive/test"
-if not path.exists(outDir):
-    makedirs(outDir)
-chdir(outDir)
-
 browser = None
 
+# Get settings
+config = ConfigParser()
+config.read("settings.ini")
+thisYear = config.get("thisyear", "year")
+
 def start_browser():
+
     # prepare the option for the chrome driver
     options = webdriver.ChromeOptions()
     options.binary_location = "/Applications/Google Chrome.app/Contents/MacOS/Google Chrome"
@@ -245,7 +245,7 @@ def get_presentation(url, session_urls, browser=None, replace=False, title=None,
         print(f"{event_date} ({event_day}) at {event_time} in {location}")
     
     with open(output_file, 'w') as outFile:
-        outFile.write("#seminar #AGU2021 #AGU\n")
+        outFile.write(f"#seminar #AGU{thisYear} #AGU\n")
         outFile.write(f"Parent session: [[{parent_session_filename}|{parent_session_title}]]\n\n")
         outFile.write(f"# [{title}]({url})\n")
         outFile.write(f"{author_list2}\n")
@@ -381,7 +381,7 @@ def get_session(url, browser=None, replace=False, get_presentations=False, has_a
     
     if not path.isfile(output_file) or replace:
         with open(output_file, 'w') as outFile:
-            outFile.write("#seminar #AGU2021 #AGU\n")
+            outFile.write(f"#seminar #AGU{thisYear} #AGU\n")
             outFile.write(f"# [{session_title}]({url})\n")
             outFile.write(f"{person_names2}\n")
             outFile.write(f"{affil_list}\n\n")
@@ -472,6 +472,13 @@ def get_session(url, browser=None, replace=False, get_presentations=False, has_a
 
 
 def main():
+    
+    # Set up output directory
+    outDir = config.get("outdir", "path")
+    if not path.exists(outDir):
+        makedirs(outDir)
+    chdir(outDir)
+    
     try:
         if not browser:
             browser = start_browser()
