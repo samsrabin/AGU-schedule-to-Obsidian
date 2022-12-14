@@ -16,17 +16,24 @@ from selenium.common.exceptions import TimeoutException
 
 browser = None
 
+def resource_path(relative_path: str) -> str:
+    try:
+        base_path = sys._MEIPASS
+    except Exception:
+        base_path = path.dirname(__file__)
+    return path.join(base_path, relative_path)
+
 # Get settings
 config = ConfigParser()
 config.read("settings.ini")
 thisYear = config.get("thisyear", "year")
+chrome_driver_binary = resource_path(config.get("chromedriver", "path"))
 
 def start_browser():
 
     # prepare the option for the chrome driver
     options = webdriver.ChromeOptions()
     options.binary_location = "/Applications/Google Chrome.app/Contents/MacOS/Google Chrome"
-    chrome_driver_binary = "/opt/homebrew/bin/chromedriver"
     # start chrome browser
     # Download other Chromium and Chrome Driver binaries at https://vikyd.github.io/download-chromium-history-version/#/
     browser = webdriver.Chrome(chrome_driver_binary, options=options)
