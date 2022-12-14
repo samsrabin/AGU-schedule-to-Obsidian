@@ -7,9 +7,6 @@ Given one or more URLs, `agu-notes-from-url` makes a set of Markown files for us
 In the directory where you'll be calling `agu-notes-from-url` (this does not have to be the directory where `agu-notes-from-url` is located, nor does it have to be the directory where you want the notes saved), make a text file called `settings.ini`. This should have the following content:
 
 ```
-[chromedriver]
-path = driver/chromedriver
-
 [outdir]
 path = archive/test
 
@@ -17,9 +14,14 @@ path = archive/test
 year = 2022
 ```
 
-- Leave the `chromedriver` setting as-is. 
 - `outdir` `path` will be where all the notes get saved; this can be a relative or an absolute path (I think).
 - `thisyear` `year` is the year of AGU you're saving notes for.
+
+If not using the binary, you'll need to point to a [chromedriver binary](https://chromedriver.chromium.org/downloads). The default location is at `driver/chromedriver` in the directory where the script is being called. To point somewhere else, add its path to `settings.ini` like so:
+```
+[chromedriver]
+path = /path/to/chromedriver
+```
 
 Usage example (you can add more URLs after the first one):
 ```

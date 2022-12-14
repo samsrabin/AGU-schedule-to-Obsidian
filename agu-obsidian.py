@@ -27,7 +27,10 @@ def resource_path(relative_path: str) -> str:
 config = ConfigParser()
 config.read("settings.ini")
 thisYear = config.get("thisyear", "year")
-chrome_driver_binary = resource_path(config.get("chromedriver", "path"))
+if config.has_option("chromedriver", "path"):
+    chrome_driver_binary = resource_path(config.get("chromedriver", "path"))
+else:
+    chrome_driver_binary = resource_path("driver/chromedriver")
 
 def start_browser():
 
