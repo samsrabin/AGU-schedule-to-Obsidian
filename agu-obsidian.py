@@ -413,6 +413,7 @@ def get_session(url, browser=None, replace=False, get_presentations=False, has_a
     
     if field_ChildList_PaperSlot:
         session_papers = field_ChildList_PaperSlot.find_elements_by_class_name("entryInformation")
+        is_panel_discussion = False
         for paper in session_papers:
             paper_starttime = paper.find_elements_by_class_name("SlotTime")
             if paper_starttime:
@@ -424,6 +425,21 @@ def get_session(url, browser=None, replace=False, get_presentations=False, has_a
                 paper_number = f"{session_code}-XX"
             paper_title = paper.find_element_by_class_name("SessionListTitle").text
             paper_presenter = None
+            
+            # Panel discussions: Skip moderator and panelists
+            # E.g., https://agu.confex.com/agu/fm22/meetingapp.cgi/Session/161615
+            if any(x in paper_title for x in ["Moderator:", "Panelist:"]):
+                if "\n" in paper_title:
+                    paper_title = paper_title.split("\n")[0]
+                print(f"Adding {paper_title}")
+                with open(output_file, 'a') as outFile:
+                    if not is_panel_discussion:
+                        is_panel_discussion = True
+                        outFile.write(f"\n\n## Panel discussion\n")
+                        outFile.write(f"### Participants\n")
+                    outFile.write(f"- {paper_title}\n")
+                continue
+            
             if "\n" in paper_title:
                 paper_title_split = paper_title.split("\n")
                 paper_title = paper_title_split[0]
@@ -473,7 +489,10 @@ def get_session(url, browser=None, replace=False, get_presentations=False, has_a
             pass
             
     with open(output_file, 'a') as outFile:
-        outFile.write("\n\n## Session notes\n")
+        if is_panel_discussion:
+            outFile.write("\n\n### Panel notes\n")
+        else:
+            outFile.write("\n\n## Session notes\n")
         outFile.write("- \n\n\n")
 
 
