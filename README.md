@@ -13,7 +13,7 @@ $ ./agu-notes-from-url https://agu.confex.com/agu/fm22/meetingapp.cgi/Session/16
 ```
 If you have some other kind of machine, you'll need to run the script using Python:
 ```
-$ python3 agu-obsidian.py https://agu.confex.com/agu/fm22/meetingapp.cgi/Session/168112
+$ python3 agu-notes-from-url.py https://agu.confex.com/agu/fm22/meetingapp.cgi/Session/168112
 ```
 More details on the latter below.
 

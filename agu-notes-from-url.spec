@@ -5,7 +5,7 @@ block_cipher = None
 
 
 a = Analysis(
-    ['agu-obsidian.py'],
+    ['agu-notes-from-url.py'],
     pathex=[],
     binaries=[('driver/chromedriver', 'driver/')],
     datas=[('settings.ini', '.')],
