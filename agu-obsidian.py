@@ -30,12 +30,12 @@ settings_file = "settings.ini"
 if path.exists(settings_file):
     config = ConfigParser()
     config.read(settings_file)
-    if config.has_option("thisyear", "year"):
-        thisYear = config.get("thisyear", "year")    
-    if config.has_option("chromedriver", "path"):
-        chrome_driver_binary = config.get("chromedriver", "path")
-    if config.has_option("outdir", "path"):
-        outDir = config.get("outdir", "path")
+    if config.has_option("optional", "year"):
+        thisYear = config.get("optional", "year")    
+    if config.has_option("optional", "chromedriver_location"):
+        chrome_driver_binary = config.get("optional", "chromedriver_location")
+    if config.has_option("optional", "output_location"):
+        outDir = config.get("optional", "output_location")
         if not path.exists(outDir):
             makedirs(outDir)
         chdir(outDir)

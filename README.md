@@ -19,18 +19,19 @@ More details on the latter below.
 
 ## Instructions
 
-In the directory where you'll be calling the binary/script (this does not have to be the directory where the binary/script is located, nor does it have to be the directory where you want the notes saved), make a text file called `settings.ini`. This should have the following content:
+### General options:
+
+By default, this program:
+- Downloads notes to the directory where it's called
+- Includes `#AGU2022` but with `2022` being the current year
+
+If you'd like to change either of those, then in the directory where you'll be calling the binary/script (this does not have to be the directory where the binary/script is located, nor does it have to be the directory where you want the notes saved), make a text file called `settings.ini`. Change settings like so:
 
 ```
-[outdir]
-path = /path/to/where/you/want/files/downloaded
-
-[thisyear]
+[optional]
+output_location = /path/to/where/you/want/files/downloaded
 year = 2022
 ```
-
-- `outdir` `path` will be where all the notes get saved; this can be a relative or an absolute path (I think).
-- `thisyear` `year` is the year of AGU you're saving notes for.
 
 ### If not using the binary
 Running the script with Python requires that your Python have the following non-standard modules installed:
@@ -41,8 +42,8 @@ If you get a `ModuleNotFoundError` for either of those, you can install them lik
 python3 -m pip install regex
 ```
 
-You'll also need to point to a [chromedriver binary](https://chromedriver.chromium.org/downloads). The default location is at `driver/chromedriver` in the directory where the script is being called. To point somewhere else, add its path to `settings.ini` like so:
+You'll also need to point to a [chromedriver binary](https://chromedriver.chromium.org/downloads). The default location is at `driver/chromedriver` in the directory where the script is being called. To point somewhere else, add its path to the `[optional]` section of `settings.ini` like so:
 ```
-[chromedriver]
-path = /path/to/chromedriver
+[optional]
+chromedriver_location = /path/to/chromedriver
 ```
