@@ -475,7 +475,7 @@ def get_session(url, browser=None, replace=False, get_presentations=False, has_a
             paper_filename = codetitle_to_filename(paper_number, paper_title)
             paper_url = paper.find_element_by_tag_name("a").get_attribute("href")
             
-            if get_presentations and paper_title not in ["Q&A", "Discussion", "Panel Discussion", "The Role of Indigenous Knowledge in Arctic Research", "Plenary - John Kerry - U.S. Special Presidential Envoy For Climate (Virtual)", "Break"] and not "Remarks" in paper_title and not "Q & A" in paper_title:
+            if get_presentations and paper_title not in ["Introduction", "Conclusions", "Q&A", "Discussion", "Panel Discussion", "The Role of Indigenous Knowledge in Arctic Research", "Plenary - John Kerry - U.S. Special Presidential Envoy For Climate (Virtual)", "Break"] and not "Remarks" in paper_title and not "Q & A" in paper_title:
                 paper_3rdcell_text = f"[[{paper_filename}]] ([URL]({paper_url}))"
                 try:
                     if not browser2:
