@@ -463,17 +463,19 @@ def get_session(url, browser=None, replace=False, get_presentations=False, has_a
                 paper_title = paper_title_split[0]
                 paper_title_split = paper_title_split[1:]
                 paper_presenter = paper_title_split[0]
+                ignored_info = None
                 if len(paper_title_split) > 1:
                     if len(paper_title_split)==2 and paper_title_split[1]=="(Invited)":
                         paper_title = paper_title + " (Invited)"
                     else:
-                        print(paper_title.split("\n"))
-                        raise RuntimeError("Error parsing paper title and presenter")
+                        ignored_info = paper_title_split[1:]
             if not paper_presenter:
                 paper_presenter = ""
                 
             if verbose:
                 print(f"{paper_title} ({paper_presenter})")
+                if ignored_info:
+                    print(f"Ignoring extra info: {ignored_info}")
             
             paper_filename = codetitle_to_filename(paper_number, paper_title)
             paper_url = paper.find_element_by_tag_name("a").get_attribute("href")
