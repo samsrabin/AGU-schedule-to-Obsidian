@@ -471,6 +471,8 @@ def get_session(url, browser=None, replace=False, get_presentations=False, has_a
                         ignored_info = paper_title_split[1:]
             if not paper_presenter:
                 paper_presenter = ""
+            
+            paper_title = paper_title.replace(paper_number + " ", "")
                 
             if verbose:
                 print(f"{paper_title} ({paper_presenter})")
