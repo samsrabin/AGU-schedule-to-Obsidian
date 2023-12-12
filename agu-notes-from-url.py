@@ -481,12 +481,12 @@ def get_session(url, browser=None, replace=False, get_presentations=False, has_a
                     print(f"paper_title: '{paper_title}'")
                     print(f"paper_title_split: '{paper_title_split}'")
                 paper_presenter = paper_title_split[0]
+                if "(Invited)" in paper_title_split:
+                    paper_title = paper_title + " (Invited)"
+                    paper_title_split.remove("(Invited)")
                 ignored_info = None
                 if len(paper_title_split) > 1:
-                    if len(paper_title_split)==2 and paper_title_split[1]=="(Invited)":
-                        paper_title = paper_title + " (Invited)"
-                    else:
-                        ignored_info = paper_title_split[1:]
+                    ignored_info = paper_title_split[1:]
             if not paper_presenter:
                 paper_presenter = ""
             
