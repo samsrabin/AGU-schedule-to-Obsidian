@@ -441,7 +441,7 @@ def get_session(url, browser=None, replace=False, get_presentations=False, has_a
             paper_number = find_or_none(paper, "SessionListNumber")
             if not paper_number:
                 paper_number = f"{session_code}-XX"
-            paper_title = paper.find_element_by_class_name("SessionListTitle").text
+            paper_title = paper.find_element_by_class_name("Title").text
             paper_presenter = None
             
             # Panel discussions: Skip moderator and panelists
