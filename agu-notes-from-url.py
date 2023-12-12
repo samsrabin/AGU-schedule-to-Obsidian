@@ -442,9 +442,9 @@ def get_session(url, browser=None, replace=False, get_presentations=False, has_a
                     outFile.write("| Time | Pres. author | Title |\n")
                     outFile.write("| ---- | ----- | --- |\n")
     
+    is_panel_discussion = False
     if field_ChildList_PaperSlot:
         session_papers = field_ChildList_PaperSlot.find_elements_by_class_name("entryInformation")
-        is_panel_discussion = False
         for paper in session_papers:
             paper_starttime = paper.find_elements_by_class_name("SlotTime")
             if paper_starttime:
