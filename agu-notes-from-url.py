@@ -66,7 +66,11 @@ def start_browser():
     # start chrome browser
     # Download other Chromium and Chrome Driver binaries at https://vikyd.github.io/download-chromium-history-version/#/
     browser = webdriver.Chrome(chrome_driver_binary, options=options)
-    tz_params = {'timezoneId': 'America/Chicago'}
+    tz = "US/Pacific"
+    if thisYear in [2022]:
+        tz = "America/Chicago"
+        
+    tz_params = {'timezoneId': tz}
     browser.execute_cdp_cmd('Emulation.setTimezoneOverride', tz_params)
     return browser
 
