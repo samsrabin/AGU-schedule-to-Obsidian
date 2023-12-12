@@ -12,6 +12,18 @@ from selenium.webdriver.support import expected_conditions as EC
 from selenium.webdriver.common.by import By
 from selenium.common.exceptions import TimeoutException
 
+verbose = False
+if not verbose:
+    import warnings
+    warnings.filterwarnings(
+        "ignore",
+        message=r".*commands are deprecated. Please use find_element.*",
+    )
+    warnings.filterwarnings(
+        "ignore",
+        message="executable_path has been deprecated, please pass in a Service object",
+    )
+
 browser = None
 
 def resource_path(relative_path: str) -> str:
@@ -107,7 +119,7 @@ def get_presentation(url, session_urls, browser=None, replace=False, title=None,
     if not browser:
         browser = start_browser()
         
-    verbose = False
+
         
     printed_title = False
     if title:
