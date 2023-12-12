@@ -24,6 +24,8 @@ if not verbose:
         message="executable_path has been deprecated, please pass in a Service object",
     )
 
+delay = 60 # timeout, seconds
+
 browser = None
 
 def resource_path(relative_path: str) -> str:
@@ -127,8 +129,6 @@ def get_presentation(url, session_urls, browser=None, replace=False, title=None,
         printed_title = True
     
     browser.get(url)
-    # time.sleep(5)
-    delay = 30 # seconds
     abstract_failed = False
     try:
         WebDriverWait(browser, delay).until(EC.presence_of_element_located((By.CLASS_NAME, "field_ParentList_ParentEntries")))
@@ -308,7 +308,6 @@ def get_session(url, browser=None, replace=False, get_presentations=False, has_a
     verbose = False
     
     browser.get(url)
-    delay = 30 # seconds
     try:
         # WebDriverWait(browser, delay).until(EC.presence_of_element_located((By.CLASS_NAME, "finalNumber")))
         WebDriverWait(browser, delay).until(EC.presence_of_element_located((By.CLASS_NAME, "favoriteItem")))
