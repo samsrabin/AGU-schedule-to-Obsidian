@@ -510,8 +510,10 @@ def get_session(url, browser=None, replace=False, get_presentations=False, has_a
                     paper_starttime = f"~~{paper_starttime}~~"
                 paper_presenter = f"~~{paper_presenter}~~"
                 paper_3rdcell_text = f"~~{paper_3rdcell_text}~~"
-                # print("CANCELLED")
                 
+            if paper_presenter == session_location:
+                paper_presenter = ""
+
             with open(output_file, 'a') as outFile:
                 if is_poster:
                     outFile.write(f"| {paper_presenter} | {paper_3rdcell_text} |\n")
