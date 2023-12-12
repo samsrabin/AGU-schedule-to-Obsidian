@@ -309,8 +309,6 @@ def get_session(url, browser=None, replace=False, get_presentations=False, has_a
     if not browser:
         browser = start_browser()
         
-    verbose = False
-    
     browser.get(url)
     try:
         # WebDriverWait(browser, delay).until(EC.presence_of_element_located((By.CLASS_NAME, "finalNumber")))
@@ -457,6 +455,8 @@ def get_session(url, browser=None, replace=False, get_presentations=False, has_a
             if not paper_number:
                 paper_number = f"{session_code}-XX"
             paper_title = paper.find_element_by_class_name("Title").text
+            if verbose:
+                print(f"paper_title: '{paper_title}'")
             paper_presenter = None
             
             # Panel discussions: Skip moderator and panelists
@@ -477,6 +477,9 @@ def get_session(url, browser=None, replace=False, get_presentations=False, has_a
                 paper_title_split = paper_title.split("\n")
                 paper_title = paper_title_split[0]
                 paper_title_split = paper_title_split[1:]
+                if verbose:
+                    print(f"paper_title: '{paper_title}'")
+                    print(f"paper_title_split: '{paper_title_split}'")
                 paper_presenter = paper_title_split[0]
                 ignored_info = None
                 if len(paper_title_split) > 1:
