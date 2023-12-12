@@ -59,9 +59,12 @@ def start_browser():
 # Parse "summary" into event title and code (if any)
 def summary_to_codetitle(summary):
     code = re.findall("[\d\-A-Z]+ - ", summary)
+    if not code:
+        code = re.findall(r"^[\d\-A-Z]+ ", summary)
     if code:
         title = summary.replace(code[0], "")
         code = code[0].replace(" - ", "")
+        code = code.replace(" ", "")
     else:
         title = summary
     return code, title
