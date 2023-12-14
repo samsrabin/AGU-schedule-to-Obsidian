@@ -25,14 +25,14 @@ More details on the latter below.
 
 By default, this program:
 - Downloads notes to the directory where it's called
-- Includes `#AGU2022` but with `2022` being the current year
+- Includes `#AGU2023` but with `2023` being the current year
 
 If you'd like to change either of those, then in the directory where you'll be calling the binary/script (this does not have to be the directory where the binary/script is located, nor does it have to be the directory where you want the notes saved), make a text file called `settings.ini`. Change settings like so:
 
 ```
 [optional]
 output_location = /path/to/where/you/want/files/downloaded
-year = 2022
+year = 2023
 ```
 
 ### If not using the binary
@@ -45,7 +45,10 @@ If you get a `ModuleNotFoundError` for either of those, you can install them lik
 python3 -m pip install regex
 ```
 
-You'll also need to point to a [chromedriver binary](https://chromedriver.chromium.org/downloads). The default location is at `driver/chromedriver` in the directory where the script is being called. To point somewhere else, add its path to the `[optional]` section of `settings.ini` like so:
+You'll also need to point to a [chromedriver binary](https://googlechromelabs.github.io/chrome-for-testing/). As of this writing (2023-12-14), you need to make sure your main Chrome is up-to-date so you can download and use the latest chromedriver from that page.
+
+The default location for the chromedriver binary is at `driver/chromedriver` in the directory where the script is being called. To point somewhere else, add its path to the `[optional]` section of `settings.ini` like so:
+
 ```
 [optional]
 chromedriver_location = /path/to/chromedriver
