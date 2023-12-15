@@ -30,6 +30,25 @@ delay = 60  # timeout, seconds
 browser = None
 
 
+def truncate_filename(filename):
+    filepath = path.split(filename)
+    pardir = path.join(*filepath[:-1])
+    orig_basename = path.basename(filename)
+    basename = orig_basename
+    max_basename_length = 255
+    Ndrop = 0
+    while len(basename) > max_basename_length:
+        # Remove the last word of the filename (replace with ellipsis) and try again
+        Ndrop += 1
+        prev_basename = basename
+        name, ext = path.splitext(orig_basename)
+        name_list = name.split(" ")
+        basename = " ".join(name_list[:-Ndrop]) + " …" + ext
+        if basename == prev_basename:
+            raise RuntimeError("Infinite loop in truncate_filename()")
+    return path.join(pardir, basename)
+
+
 def resource_path(relative_path: str) -> str:
     try:
         base_path = sys._MEIPASS
@@ -224,6 +243,7 @@ def get_presentation(
     # Replace illegal characters for Obsidian filenames
     filename = codetitle_to_filename(code, title)
     filename_md = filename + ".md"
+    filename_md = truncate_filename(filename_md)
     output_file = filename_md
     if verbose:
         print(f"Output file: {output_file}")
@@ -406,6 +426,7 @@ def get_session(
     filename = codetitle_to_filename(session_code, session_title)
     filename_md = filename + ".md"
     output_file = "_" + filename_md
+    output_file = truncate_filename(output_file)
     if verbose:
         print(f"Filename: {output_file}")
 
@@ -570,6 +591,8 @@ def get_session(
                     print(f"Ignoring extra info: {ignored_info}")
 
             paper_filename = codetitle_to_filename(paper_number, paper_title)
+            paper_filename = truncate_filename(paper_filename + ".md")
+            paper_filename = paper_filename[:-3]
             paper_url = paper.find_element_by_tag_name("a").get_attribute("href")
 
             if (
