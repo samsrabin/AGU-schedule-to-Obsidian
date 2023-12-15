@@ -153,6 +153,7 @@ def get_presentation(
         printed_title = True
 
     browser.get(url)
+    start_time = datetime.now()
     abstract_failed = False
     try:
         WebDriverWait(browser, delay).until(
@@ -160,22 +161,28 @@ def get_presentation(
                 (By.CLASS_NAME, "field_ParentList_ParentEntries")
             )
         )
+        remaining_time = max(1, delay - (datetime.now() - start_time).total_seconds())
         if has_abstract:
             try:
-                WebDriverWait(browser, delay).until(
+                WebDriverWait(browser, remaining_time).until(
                     EC.presence_of_element_located((By.CLASS_NAME, "field_Abstract"))
                 )
             except TimeoutException:
                 has_abstract = False
                 abstract_failed = True
+            remaining_time = max(1, delay - (datetime.now() - start_time).total_seconds())
         if not author_list2:
-            WebDriverWait(browser, delay).until(
-                EC.presence_of_element_located((By.CLASS_NAME, "RoleListItem"))
-            )
+            try:
+                WebDriverWait(browser, remaining_time).until(
+                    EC.presence_of_element_located((By.CLASS_NAME, "RoleListItem"))
+                )
+            except TimeoutException:
+                pass
     except TimeoutException:
-        raise RuntimeError(
-            f"Loading took too much time (limit {delay} seconds! Url: {url}"
+        print(
+            f"    Loading took too much time (limit {delay} seconds). Url: {url}"
         )
+        has_abstract = False
 
     # Parent session
     parent = browser.find_element_by_class_name("field_ParentList_ParentEntries")
@@ -209,7 +216,7 @@ def get_presentation(
     if not printed_title:
         print(f"Importing presentation: {title}")
     if abstract_failed:
-        print("(No abstract found)")
+        print("    (No abstract found)")
     if verbose:
         print(f"Code: {code}")
         print(f"Title: {title}")
@@ -330,16 +337,21 @@ def get_presentation(
             f"Parent session: [[{parent_session_filename}|{parent_session_title}]]\n\n"
         )
         outFile.write(f"# [{title}]({url})\n")
-        outFile.write(f"{author_list2}\n")
+        if author_list2:
+            outFile.write(f"{author_list2}\n")
+        else:
+            print("    (No author list found)")
         outFile.write(f"{inst_list}\n\n")
         outFile.write(f"{event_time} {event_day} {event_date}\n")
         outFile.write(f"{location}\n\n")
-        outFile.write("## Description\n")
-        outFile.write("### Abstract\n")
-        outFile.write(f"{abstract}\n\n")
-        if pl_summary:
-            outFile.write("### Plain-language summary\n")
-            outFile.write(f"{pl_summary}\n")
+        if has_abstract or pl_summary:
+            outFile.write("## Description\n")
+            if has_abstract:
+                outFile.write("### Abstract\n")
+                outFile.write(f"{abstract}\n\n")
+            if pl_summary:
+                outFile.write("### Plain-language summary\n")
+                outFile.write(f"{pl_summary}\n")
         outFile.write("\n")
         outFile.write("## Notes\n")
         outFile.write("- \n\n\n")
