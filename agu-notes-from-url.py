@@ -144,7 +144,7 @@ def do_replace(output_file):
 
 
 def find_or_none(driver, classname):
-    x = driver.find_elements_by_class_name(classname)
+    x = driver.find_elements(By.CLASS_NAME, classname)
     if len(x) > 0:
         x = x[0].text
     else:
@@ -202,13 +202,13 @@ def get_presentation(
         has_abstract = False
 
     # Parent session
-    parent = browser.find_element_by_class_name("field_ParentList_ParentEntries")
+    parent = browser.find_element(By.CLASS_NAME, "field_ParentList_ParentEntries")
     tries = 0
     parent2 = None
     while not parent2 and tries < 15:
         tries = tries + 1
         try:
-            parent2 = parent.find_element_by_tag_name("a")
+            parent2 = parent.find_element(By.TAG_NAME, "a")
         except:
             time.sleep(1)
     if not parent2:
@@ -226,7 +226,7 @@ def get_presentation(
 
     # Parse "summary" into event title and code (if any)
     code, title = summary_to_codetitle(
-        browser.find_element_by_class_name("titleContent").text
+        browser.find_element(By.CLASS_NAME, "titleContent").text
     )
     if not code:
         code = f"{parent_session_code}-XX"
@@ -260,7 +260,7 @@ def get_presentation(
     if has_abstract:
         if verbose:
             print("Getting abstract")
-        abstract = browser.find_element_by_class_name("field_Abstract").text.replace(
+        abstract = browser.find_element(By.CLASS_NAME, "field_Abstract").text.replace(
             "Abstract\n", ""
         )
         abstract = abstract.replace("\n", "\n\n")
@@ -272,7 +272,7 @@ def get_presentation(
 
     # P-L Summary
     pl_summary = None
-    field_ExtendedAbstract = browser.find_elements_by_class_name(
+    field_ExtendedAbstract = browser.find_elements(By.CLASS_NAME,
         "field_ExtendedAbstract"
     )
     if len(field_ExtendedAbstract) > 0:
@@ -286,7 +286,7 @@ def get_presentation(
 
     # Authors
     if not author_list2:
-        authors = browser.find_elements_by_class_name("RoleListItem")
+        authors = browser.find_elements(By.CLASS_NAME, "RoleListItem")
         author_list = ""
         author_names = []
         author_insts = []
@@ -339,11 +339,11 @@ def get_presentation(
         inst_list = ""
 
     # Parse other information
-    event_daydate = browser.find_element_by_class_name("SlotDate").text
+    event_daydate = browser.find_element(By.CLASS_NAME, "SlotDate").text
     event_day = re.findall("^[A-Za-z]+", event_daydate)[0]
     event_date = event_daydate.replace(f"{event_day}, ", "")
-    event_time = browser.find_element_by_class_name("SlotTime").text.replace(" - ", "-")
-    location = browser.find_element_by_class_name("propertyInfo").text
+    event_time = browser.find_element(By.CLASS_NAME, "SlotTime").text.replace(" - ", "-")
+    location = browser.find_element(By.CLASS_NAME, "propertyInfo").text
     while location[0] == " ":
         location = location[1:]
     if verbose:
@@ -406,16 +406,16 @@ def get_session(
         raise RuntimeError(f"Loading took too much time (limit {delay} seconds!")
     time.sleep(5)
 
-    session_code = browser.find_elements_by_class_name("finalNumber")
+    session_code = browser.find_elements(By.CLASS_NAME, "finalNumber")
     if not session_code:
-        if "Keynote" in browser.find_element_by_class_name("field_GoodType").text:
+        if "Keynote" in browser.find_element(By.CLASS_NAME, "field_GoodType").text:
             urlsplit = url.split("/")
             session_code = "K" + urlsplit[-1]
         else:
             raise RuntimeError("No session code found (class finalNumber)")
     else:
         session_code = session_code[0].text
-    session_title = browser.find_element_by_class_name("favoriteItem").text
+    session_title = browser.find_element(By.CLASS_NAME, "favoriteItem").text
     session_title = session_title.replace(session_code + " - ", "")
     print(f"Importing session: {session_title}")
     is_poster = "Poster" in session_title
@@ -436,32 +436,32 @@ def get_session(
         elif replace:
             do_replace(output_file)
 
-    session_whenwhere = browser.find_element_by_class_name("field_ParentList_SlotData")
-    session_daydate = session_whenwhere.find_element_by_class_name("SlotDate").text
-    session_time = session_whenwhere.find_element_by_class_name("SlotTime").text
-    session_location = session_whenwhere.find_element_by_class_name("propertyInfo").text
+    session_whenwhere = browser.find_element(By.CLASS_NAME, "field_ParentList_SlotData")
+    session_daydate = session_whenwhere.find_element(By.CLASS_NAME, "SlotDate").text
+    session_time = session_whenwhere.find_element(By.CLASS_NAME, "SlotTime").text
+    session_location = session_whenwhere.find_element(By.CLASS_NAME, "propertyInfo").text
     if verbose:
         print(session_daydate)
         print(session_time)
         print(session_location)
 
-    session_abstract = browser.find_element_by_class_name("field_SubTitle").text
+    session_abstract = browser.find_element(By.CLASS_NAME, "field_SubTitle").text
     session_abstract = session_abstract.replace("\n", "\n\n")
     session_abstract = session_abstract.replace("\n\n\n", "\n\n")
 
-    session_leaders = browser.find_element_by_class_name(
+    session_leaders = browser.find_element(By.CLASS_NAME,
         "field_ChildList_Role"
-    ).find_elements_by_class_name("RoleListItem")
+    ).find_elements(By.CLASS_NAME, "RoleListItem")
     person_names = []
     person_affils_all = []
     person_affils = []
     person_nameaffils = []
     for person in session_leaders:
-        person_name = person.find_element_by_tag_name("a").text
+        person_name = person.find_element(By.TAG_NAME, "a").text
         if person_name in person_names:
             continue
         person_nameaffil = person_name
-        person_affil = person.find_elements_by_class_name("Affiliation")
+        person_affil = person.find_elements(By.CLASS_NAME, "Affiliation")
         if not person_affil:
             person_affil = None
         else:
@@ -500,7 +500,7 @@ def get_session(
         print(affil_list)
 
     # Some sessions (e.g., https://agu.confex.com/agu/fm21/meetingapp.cgi/Session/142602) have no children
-    field_ChildList_PaperSlot = browser.find_elements_by_class_name(
+    field_ChildList_PaperSlot = browser.find_elements(By.CLASS_NAME,
         "field_ChildList_PaperSlot"
     )
     if field_ChildList_PaperSlot:
@@ -533,11 +533,11 @@ def get_session(
 
     is_panel_discussion = False
     if field_ChildList_PaperSlot:
-        session_papers = field_ChildList_PaperSlot.find_elements_by_class_name(
+        session_papers = field_ChildList_PaperSlot.find_elements(By.CLASS_NAME,
             "entryInformation"
         )
         for paper in session_papers:
-            paper_starttime = paper.find_elements_by_class_name("SlotTime")
+            paper_starttime = paper.find_elements(By.CLASS_NAME, "SlotTime")
             if paper_starttime:
                 paper_starttime = paper_starttime[0].text
             else:
@@ -545,7 +545,7 @@ def get_session(
             paper_number = find_or_none(paper, "SessionListNumber")
             if not paper_number:
                 paper_number = f"{session_code}-XX"
-            paper_title = paper.find_element_by_class_name("Title").text
+            paper_title = paper.find_element(By.CLASS_NAME, "Title").text
             if verbose:
                 print(f"paper_title: '{paper_title}'")
             paper_presenter = None
@@ -591,7 +591,7 @@ def get_session(
             paper_filename = codetitle_to_filename(paper_number, paper_title)
             paper_filename = truncate_filename(paper_filename + ".md")
             paper_filename = paper_filename[:-3]
-            paper_url = paper.find_element_by_tag_name("a").get_attribute("href")
+            paper_url = paper.find_element(By.TAG_NAME, "a").get_attribute("href")
 
             if (
                 get_presentations
