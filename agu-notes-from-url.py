@@ -11,6 +11,7 @@ from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
 from selenium.webdriver.common.by import By
 from selenium.common.exceptions import TimeoutException
+from selenium.webdriver.chrome.service import Service
 
 verbose = False
 if not verbose:
@@ -81,14 +82,11 @@ chrome_driver_binary = resource_path(chrome_driver_binary)
 
 
 def start_browser():
-    # prepare the option for the chrome driver
+    # Selenium will download the necessary version of Chrome For Testing
+    service = Service()
     options = webdriver.ChromeOptions()
-    options.binary_location = (
-        "/Applications/Google Chrome.app/Contents/MacOS/Google Chrome"
-    )
-    # start chrome browser
-    # Download other Chromium and Chrome Driver binaries at https://vikyd.github.io/download-chromium-history-version/#/
-    browser = webdriver.Chrome(chrome_driver_binary, options=options)
+    browser = webdriver.Chrome(service=service, options=options)
+
     tz = "US/Pacific"
     if thisYear in [2022]:
         tz = "America/Chicago"
