@@ -69,6 +69,7 @@ if path.exists(settings_file):
     config.read(settings_file)
     if config.has_option("optional", "year"):
         thisYear = config.get("optional", "year")
+        thisYear = int(thisYear)
     if config.has_option("optional", "chromedriver_location"):
         chrome_driver_binary = config.get("optional", "chromedriver_location")
     if config.has_option("optional", "output_location"):
@@ -87,9 +88,16 @@ def start_browser():
     options = webdriver.ChromeOptions()
     browser = webdriver.Chrome(service=service, options=options)
 
-    tz = "US/Pacific"
     if thisYear in [2022]:
         tz = "America/Chicago"
+    elif thisYear in [2023]:
+        tz = "US/Pacific"
+    elif thisYear in [2024]:
+        tz = "US/Eastern"
+    elif thisYear in [2025]:
+        tz = "US/Central"
+    else:
+        raise KeyError(f"What time zone for AGU {thisYear}?")
 
     tz_params = {"timezoneId": tz}
     browser.execute_cdp_cmd("Emulation.setTimezoneOverride", tz_params)
