@@ -86,6 +86,7 @@ def start_browser():
     # Selenium will download the necessary version of Chrome For Testing
     service = Service()
     options = webdriver.ChromeOptions()
+    options.add_argument("--headless")  # Invisible window
     browser = webdriver.Chrome(service=service, options=options)
 
     if thisYear in [2022]:
