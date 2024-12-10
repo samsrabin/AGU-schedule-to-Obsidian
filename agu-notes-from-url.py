@@ -109,7 +109,7 @@ def summary_to_codetitle(summary):
     # Remove extraneous information
     summary = summary.replace("NCA5 Author\n", "")
     
-    code = re.findall("[\d\-A-Z]+ - ", summary)
+    code = re.findall(r"[\d\-A-Z]+ - ", summary)
     if not code:
         code = re.findall(r"^[\d\-A-Z]+ ", summary)
     if code:
