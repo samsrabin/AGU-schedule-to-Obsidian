@@ -9,13 +9,13 @@ Given one or more URLs, makes a set of Markdown files for use in Obsidian. E.g.:
 
 I provide a pre-compiled, packaged Python binary that I have tested on my Apple Silicon Mac. It should work on other Apple Silicon Macs. Call it from a terminal like so (replacing the URL with your URL of interest):
 ```
-$ ./agu-notes-from-url https://agu.confex.com/agu/fm22/meetingapp.cgi/Session/168112
+$ ./agu-notes-from-url https://agu.confex.com/agu/agu24/meetingapp.cgi/Session/233359
 ```
 (If you get a permissions error, try doing `chmod +x agu-notes-from-url` and try again. You should only have to do that once.)
 
-If you have some other kind of machine, you'll need to run the script using Python:
+If you have some other kind of machine, you'll need to run the script using Python. E.g.:
 ```
-$ python3 agu-notes-from-url.py https://agu.confex.com/agu/fm22/meetingapp.cgi/Session/168112
+$ python3 agu-notes-from-url.py https://agu.confex.com/agu/agu24/meetingapp.cgi/Session/233359
 ```
 More details on the latter below.
 
@@ -25,14 +25,14 @@ More details on the latter below.
 
 By default, this program:
 - Downloads notes to the directory where it's called
-- Includes `#AGU2023` but with `2023` being the current year
+- Includes `#AGU2024` but with `2024` being the current year
 
 If you'd like to change either of those, then in the directory where you'll be calling the binary/script (this does not have to be the directory where the binary/script is located, nor does it have to be the directory where you want the notes saved), make a text file called `settings.ini`. Change settings like so:
 
 ```
 [optional]
 output_location = /path/to/where/you/want/files/downloaded
-year = 2023
+year = 2024
 ```
 
 ### If not using the binary
