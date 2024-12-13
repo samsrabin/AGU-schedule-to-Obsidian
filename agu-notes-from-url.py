@@ -91,11 +91,13 @@ def start_browser():
 
 
 # Parse "summary" into event title and code (if any)
-def summary_to_codetitle(summary):
+def summary_to_codetitle(summary, parent_code=None):
     # Remove extraneous information
     summary = summary.replace("NCA5 Author\n", "")
-    
-    code = re.findall(r"[\d\-A-Z]+ - ", summary)
+    if parent_code:
+        code = re.findall(parent_code + r"\-\d+ ", summary)
+    else:
+        code = re.findall(r"[\d\-A-Z]+ - ", summary)
     if not code:
         code = re.findall(r"^[\d\-A-Z]+ ", summary)
     if code:
@@ -222,7 +224,8 @@ def get_presentation(
 
     # Parse "summary" into event title and code (if any)
     code, title = summary_to_codetitle(
-        browser.find_element(By.CLASS_NAME, "titleContent").text
+        browser.find_element(By.CLASS_NAME, "titleContent").text,
+        parent_session_code,
     )
     if not code:
         code = f"{parent_session_code}-XX"
@@ -240,7 +243,7 @@ def get_presentation(
     filename_md = truncate_filename(filename_md)
     output_file = filename_md
     if debug:
-        print(f"Output file: {output_file}")
+        print(f"Output file: '{output_file}'")
 
     if path.isfile(output_file):
         if not replace:
@@ -250,7 +253,8 @@ def get_presentation(
         else:
             do_replace(output_file)
     if debug:
-        print(f"Filename: {filename}")
+        print(f"Filename: '{filename}'")
+        print(f"Filename (md): '{filename_md}'")
 
     # Abstract
     if has_abstract:
