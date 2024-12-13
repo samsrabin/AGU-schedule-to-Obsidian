@@ -60,7 +60,6 @@ def resource_path(relative_path: str) -> str:
 
 # Set defaults
 thisYear = datetime.now().year
-chrome_driver_binary = "driver/chromedriver"
 
 # Read settings file
 settings_file = "settings.ini"
@@ -70,16 +69,11 @@ if path.exists(settings_file):
     if config.has_option("optional", "year"):
         thisYear = config.get("optional", "year")
         thisYear = int(thisYear)
-    if config.has_option("optional", "chromedriver_location"):
-        chrome_driver_binary = config.get("optional", "chromedriver_location")
     if config.has_option("optional", "output_location"):
         outDir = config.get("optional", "output_location")
         if not path.exists(outDir):
             makedirs(outDir)
         chdir(outDir)
-
-# Finish
-chrome_driver_binary = resource_path(chrome_driver_binary)
 
 
 def start_browser():

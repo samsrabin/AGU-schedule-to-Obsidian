@@ -7,7 +7,6 @@ block_cipher = None
 a = Analysis(
     ['agu-notes-from-url.py'],
     pathex=[],
-    binaries=[('driver/chromedriver', 'driver/')],
     datas=[('settings.ini', '.')],
     hiddenimports=[],
     hookspath=[],

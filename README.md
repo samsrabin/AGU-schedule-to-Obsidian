@@ -38,18 +38,9 @@ year = 2023
 ### If not using the binary
 Running the script with Python requires that your Python have the following non-standard modules installed:
 - `regex`
-- `selenium`
+- `selenium` v4.11 or later
 
 If you get a `ModuleNotFoundError` for either of those, you can install them like so:
 ```
 python3 -m pip install regex
-```
-
-You'll also need to point to a [chromedriver binary](https://googlechromelabs.github.io/chrome-for-testing/). As of this writing (2023-12-14), you need to make sure your main Chrome is up-to-date so you can download and use the latest chromedriver from that page.
-
-The default location for the chromedriver binary is at `driver/chromedriver` in the directory where the script is being called. To point somewhere else, add its path to the `[optional]` section of `settings.ini` like so:
-
-```
-[optional]
-chromedriver_location = /path/to/chromedriver
 ```
