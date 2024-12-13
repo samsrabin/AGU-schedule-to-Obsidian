@@ -13,19 +13,6 @@ from selenium.webdriver.common.by import By
 from selenium.common.exceptions import TimeoutException
 from selenium.webdriver.chrome.service import Service
 
-verbose = False
-if not verbose:
-    import warnings
-
-    warnings.filterwarnings(
-        "ignore",
-        message=r".*commands are deprecated. Please use find_element.*",
-    )
-    warnings.filterwarnings(
-        "ignore",
-        message="executable_path has been deprecated, please pass in a Service object",
-    )
-
 delay = 60  # timeout, seconds
 
 browser = None
@@ -60,6 +47,7 @@ def resource_path(relative_path: str) -> str:
 
 # Set defaults
 thisYear = datetime.now().year
+debug = False
 
 # Read settings file
 settings_file = "settings.ini"
@@ -74,13 +62,28 @@ if path.exists(settings_file):
         if not path.exists(outDir):
             makedirs(outDir)
         chdir(outDir)
+    if config.has_option("optional", "debug"):
+        debug = config.get("optional", "debug").lower() == "true"
+
+if not debug:
+    import warnings
+
+    warnings.filterwarnings(
+        "ignore",
+        message=r".*commands are deprecated. Please use find_element.*",
+    )
+    warnings.filterwarnings(
+        "ignore",
+        message="executable_path has been deprecated, please pass in a Service object",
+    )
 
 
 def start_browser():
     # Selenium will download the necessary version of Chrome For Testing
     service = Service()
     options = webdriver.ChromeOptions()
-    options.add_argument("--headless")  # Invisible window
+    if not debug:
+        options.add_argument("--headless")  # Invisible window
     browser = webdriver.Chrome(service=service, options=options)
 
     if thisYear in [2022]:
@@ -172,6 +175,8 @@ def get_presentation(
         print(f"Importing presentation: {title}")
         printed_title = True
 
+    if debug:
+        print("URL: " + url)
     browser.get(url)
     start_time = datetime.now()
     abstract_failed = False
@@ -223,7 +228,7 @@ def get_presentation(
     parent_session_url = parent2.get_property("href")
     if parent_session_url not in session_urls:
         session_urls = session_urls + [parent_session_url]
-    if verbose:
+    if debug:
         print(f"Parent session: {parent_session_title} ({parent_session_url})")
         print(f"Parent session filename: {parent_session_filename}")
 
@@ -237,7 +242,7 @@ def get_presentation(
         print(f"Importing presentation: {title}")
     if abstract_failed:
         print("    (No abstract found)")
-    if verbose:
+    if debug:
         print(f"Code: {code}")
         print(f"Title: {title}")
 
@@ -246,29 +251,29 @@ def get_presentation(
     filename_md = filename + ".md"
     filename_md = truncate_filename(filename_md)
     output_file = filename_md
-    if verbose:
+    if debug:
         print(f"Output file: {output_file}")
 
     if path.isfile(output_file):
         if not replace:
-            if verbose:
+            if debug:
                 print("Returning")
             return session_urls
         else:
             do_replace(output_file)
-    if verbose:
+    if debug:
         print(f"Filename: {filename}")
 
     # Abstract
     if has_abstract:
-        if verbose:
+        if debug:
             print("Getting abstract")
         abstract = browser.find_element(By.CLASS_NAME, "field_Abstract").text.replace(
             "Abstract\n", ""
         )
         abstract = abstract.replace("\n", "\n\n")
         abstract = abstract.replace("\n\n\n", "\n\n")
-        if verbose:
+        if debug:
             print(f"Abstract: {abstract}")
     else:
         abstract = ""
@@ -284,7 +289,7 @@ def get_presentation(
         )
         pl_summary = pl_summary.replace("\n", "\n\n")
         pl_summary = pl_summary.replace("\n\n\n", "\n\n")
-    if verbose:
+    if debug:
         print(f"Plain-language summary: {pl_summary}")
 
     # Authors
@@ -329,14 +334,14 @@ def get_presentation(
                 author_list2 = author_list2 + f"{author}"
             if a < len(authors) - 1:
                 author_list2 = author_list2 + ", "
-        if verbose:
+        if debug:
             print(author_list2)
         inst_list = ""
         for i, inst in enumerate(author_insts):
             inst_list = inst_list + f"({i+1}) {inst}"
             if i < len(author_insts) - 1:
                 inst_list = inst_list + ", "
-        if verbose:
+        if debug:
             print(inst_list)
     else:
         inst_list = ""
@@ -349,7 +354,7 @@ def get_presentation(
     location = browser.find_element(By.CLASS_NAME, "propertyInfo").text
     while location[0] == " ":
         location = location[1:]
-    if verbose:
+    if debug:
         print(f"{event_date} ({event_day}) at {event_time} in {location}")
 
     with open(output_file, "w") as outFile:
@@ -386,6 +391,8 @@ def get_session(
     if not browser:
         browser = start_browser()
 
+    if debug:
+        print("URL: " + url)
     browser.get(url)
     try:
         # WebDriverWait(browser, delay).until(EC.presence_of_element_located((By.CLASS_NAME, "finalNumber")))
@@ -428,12 +435,12 @@ def get_session(
     filename_md = filename + ".md"
     output_file = "_" + filename_md
     output_file = truncate_filename(output_file)
-    if verbose:
+    if debug:
         print(f"Filename: {output_file}")
 
     if path.isfile(output_file):
         if not replace and not get_presentations:
-            if verbose:
+            if debug:
                 print("Returning")
             return
         elif replace:
@@ -443,7 +450,7 @@ def get_session(
     session_daydate = session_whenwhere.find_element(By.CLASS_NAME, "SlotDate").text
     session_time = session_whenwhere.find_element(By.CLASS_NAME, "SlotTime").text
     session_location = session_whenwhere.find_element(By.CLASS_NAME, "propertyInfo").text
-    if verbose:
+    if debug:
         print(session_daydate)
         print(session_time)
         print(session_location)
@@ -498,7 +505,7 @@ def get_session(
         person_names2 = person_names2[:-2]
     if affil_list[-2:] == ", ":
         affil_list = affil_list[:-2]
-    if verbose:
+    if debug:
         print(person_names2)
         print(affil_list)
 
@@ -549,7 +556,7 @@ def get_session(
             if not paper_number:
                 paper_number = f"{session_code}-XX"
             paper_title = paper.find_element(By.CLASS_NAME, "Title").text
-            if verbose:
+            if debug:
                 print(f"paper_title: '{paper_title}'")
             paper_presenter = None
 
@@ -571,7 +578,7 @@ def get_session(
                 paper_title_split = paper_title.split("\n")
                 paper_title = paper_title_split[0]
                 paper_title_split = paper_title_split[1:]
-                if verbose:
+                if debug:
                     print(f"paper_title: '{paper_title}'")
                     print(f"paper_title_split: '{paper_title_split}'")
                 paper_presenter = paper_title_split[0]
@@ -586,7 +593,7 @@ def get_session(
 
             paper_title = paper_title.replace(paper_number + " ", "")
 
-            if verbose:
+            if debug:
                 print(f"{paper_title} ({paper_presenter})")
                 if ignored_info:
                     print(f"Ignoring extra info: {ignored_info}")

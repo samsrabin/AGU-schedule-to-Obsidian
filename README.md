@@ -35,6 +35,8 @@ output_location = /path/to/where/you/want/files/downloaded
 year = 2024
 ```
 
+You can also add `debug = True` to enable verbose printout useful for debugging.
+
 ### If not using the binary
 Running the script with Python requires that your Python have the following non-standard modules installed:
 - `regex`
