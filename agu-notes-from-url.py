@@ -65,18 +65,6 @@ if path.exists(settings_file):
     if config.has_option("optional", "debug"):
         debug = config.get("optional", "debug").lower() == "true"
 
-if not debug:
-    import warnings
-
-    warnings.filterwarnings(
-        "ignore",
-        message=r".*commands are deprecated. Please use find_element.*",
-    )
-    warnings.filterwarnings(
-        "ignore",
-        message="executable_path has been deprecated, please pass in a Service object",
-    )
-
 
 def start_browser():
     # Selenium will download the necessary version of Chrome For Testing
