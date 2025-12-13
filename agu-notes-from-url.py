@@ -185,7 +185,9 @@ def get_presentation(
             except TimeoutException:
                 has_abstract = False
                 abstract_failed = True
-            remaining_time = max(1, delay - (datetime.now() - start_time).total_seconds())
+            remaining_time = max(
+                1, delay - (datetime.now() - start_time).total_seconds()
+            )
         if not author_list2:
             try:
                 WebDriverWait(browser, remaining_time).until(
@@ -194,9 +196,7 @@ def get_presentation(
             except TimeoutException:
                 pass
     except TimeoutException:
-        print(
-            f"    Loading took too much time (limit {delay} seconds). Url: {url}"
-        )
+        print(f"    Loading took too much time (limit {delay} seconds). Url: {url}")
         has_abstract = False
 
     # Parent session
@@ -272,8 +272,8 @@ def get_presentation(
 
     # P-L Summary
     pl_summary = None
-    field_ExtendedAbstract = browser.find_elements(By.CLASS_NAME,
-        "field_ExtendedAbstract"
+    field_ExtendedAbstract = browser.find_elements(
+        By.CLASS_NAME, "field_ExtendedAbstract"
     )
     if len(field_ExtendedAbstract) > 0:
         pl_summary = field_ExtendedAbstract[0].text.replace(
@@ -342,7 +342,9 @@ def get_presentation(
     event_daydate = browser.find_element(By.CLASS_NAME, "SlotDate").text
     event_day = re.findall("^[A-Za-z]+", event_daydate)[0]
     event_date = event_daydate.replace(f"{event_day}, ", "")
-    event_time = browser.find_element(By.CLASS_NAME, "SlotTime").text.replace(" - ", "-")
+    event_time = browser.find_element(By.CLASS_NAME, "SlotTime").text.replace(
+        " - ", "-"
+    )
     location = browser.find_element(By.CLASS_NAME, "propertyInfo").text
     while location[0] == " ":
         location = location[1:]
@@ -441,7 +443,9 @@ def get_session(
     session_whenwhere = browser.find_element(By.CLASS_NAME, "field_ParentList_SlotData")
     session_daydate = session_whenwhere.find_element(By.CLASS_NAME, "SlotDate").text
     session_time = session_whenwhere.find_element(By.CLASS_NAME, "SlotTime").text
-    session_location = session_whenwhere.find_element(By.CLASS_NAME, "propertyInfo").text
+    session_location = session_whenwhere.find_element(
+        By.CLASS_NAME, "propertyInfo"
+    ).text
     if debug:
         print(session_daydate)
         print(session_time)
@@ -451,8 +455,8 @@ def get_session(
     session_abstract = session_abstract.replace("\n", "\n\n")
     session_abstract = session_abstract.replace("\n\n\n", "\n\n")
 
-    session_leaders = browser.find_element(By.CLASS_NAME,
-        "field_ChildList_Role"
+    session_leaders = browser.find_element(
+        By.CLASS_NAME, "field_ChildList_Role"
     ).find_elements(By.CLASS_NAME, "RoleListItem")
     person_names = []
     person_affils_all = []
@@ -502,8 +506,8 @@ def get_session(
         print(affil_list)
 
     # Some sessions (e.g., https://agu.confex.com/agu/fm21/meetingapp.cgi/Session/142602) have no children
-    field_ChildList_PaperSlot = browser.find_elements(By.CLASS_NAME,
-        "field_ChildList_PaperSlot"
+    field_ChildList_PaperSlot = browser.find_elements(
+        By.CLASS_NAME, "field_ChildList_PaperSlot"
     )
     if field_ChildList_PaperSlot:
         field_ChildList_PaperSlot = field_ChildList_PaperSlot[0]
@@ -535,8 +539,8 @@ def get_session(
 
     is_panel_discussion = False
     if field_ChildList_PaperSlot:
-        session_papers = field_ChildList_PaperSlot.find_elements(By.CLASS_NAME,
-            "entryInformation"
+        session_papers = field_ChildList_PaperSlot.find_elements(
+            By.CLASS_NAME, "entryInformation"
         )
         for paper in session_papers:
             paper_starttime = paper.find_elements(By.CLASS_NAME, "SlotTime")
