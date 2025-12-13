@@ -25,7 +25,7 @@ More details on the latter below.
 
 By default, this program:
 - Downloads notes to the directory where it's called
-- Includes `#AGU2024` but with `2024` being the current year
+- Includes `#AGUyyyy` but with `yyyy` being the current year
 
 If you'd like to change either of those, then in the directory where you'll be calling the binary/script (this does not have to be the directory where the binary/script is located, nor does it have to be the directory where you want the notes saved), make a text file called `settings.ini`. Change settings like so:
 
