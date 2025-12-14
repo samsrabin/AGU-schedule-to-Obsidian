@@ -159,6 +159,7 @@ def get_presentation(
     title=None,
     has_abstract=True,
     author_list2=None,
+    dirname=None,
 ):
     if not browser:
         browser = start_browser()
@@ -218,6 +219,9 @@ def get_presentation(
     parent_session_filename = "_" + codetitle_to_filename(
         parent_session_code, parent_session_title
     )
+    if dirname is None:
+        dirname = parent_session_filename[1:]
+        makedirs(dirname, exist_ok=True)
     parent_session_url = parent2.get_property("href")
     if parent_session_url not in session_urls:
         session_urls = session_urls + [parent_session_url]
@@ -244,7 +248,7 @@ def get_presentation(
     filename = codetitle_to_filename(code, title)
     filename_md = filename + ".md"
     filename_md = truncate_filename(filename_md)
-    output_file = filename_md
+    output_file = path.join(dirname, filename_md)
     if debug:
         print(f"Output file: '{output_file}'")
 
@@ -426,10 +430,16 @@ def get_session(
     print(f"Importing session: {session_title}")
     is_poster = "Poster" in session_title
 
+    # Get directory name
     # Replace illegal characters for Obsidian filenames
-    filename = codetitle_to_filename(session_code, session_title)
-    filename_md = filename + ".md"
-    output_file = "_" + filename_md
+    dirname = codetitle_to_filename(session_code, session_title)
+    if path.exists(dirname) and not overwrite:
+        print(f"Won't overwrite existing session dir: '{dirname}'")
+        return
+    makedirs(dirname)
+
+    # Get filename
+    output_file = path.join(dirname, "_" + dirname + ".md")
     output_file = truncate_filename(output_file)
     if debug:
         print(f"Filename: {output_file}")
@@ -623,6 +633,7 @@ def get_session(
                     browser2,
                     title=paper_title,
                     has_abstract=has_abstract,
+                    dirname=dirname,
                 )
             else:
                 paper_3rdcell_text = paper_title
