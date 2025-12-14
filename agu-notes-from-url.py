@@ -250,7 +250,7 @@ def get_presentation(
 
     if path.isfile(output_file):
         if not overwrite:
-            print("Won't overwrite existing paper file: " + output_file)
+            print(f"Won't overwrite existing paper file: '{output_file}'")
             return session_urls
         do_replace(output_file)
     if debug:
@@ -436,7 +436,7 @@ def get_session(
 
     if path.isfile(output_file):
         if not overwrite:
-            print("Won't overwrite existing session file: " + output_file)
+            print(f"Won't overwrite existing session file: '{output_file}'")
             return
         do_replace(output_file)
 
