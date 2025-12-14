@@ -49,6 +49,7 @@ def resource_path(relative_path: str) -> str:
 # Set defaults
 thisYear = datetime.now().year
 debug = False
+overwrite = False
 
 # Read settings file
 settings_file = "settings.ini"
@@ -65,6 +66,8 @@ if path.exists(settings_file):
         chdir(outDir)
     if config.has_option("optional", "debug"):
         debug = config.get("optional", "debug").lower() == "true"
+    if config.has_option("optional", "overwrite"):
+        overwrite = config.get("optional", "overwrite").lower() == "true"
 
 
 def start_browser():
@@ -153,7 +156,6 @@ def get_presentation(
     url,
     session_urls,
     browser=None,
-    replace=False,
     title=None,
     has_abstract=True,
     author_list2=None,
@@ -247,12 +249,10 @@ def get_presentation(
         print(f"Output file: '{output_file}'")
 
     if path.isfile(output_file):
-        if not replace:
-            if debug:
-                print("Returning")
+        if not overwrite:
+            print("Won't overwrite existing paper file: " + output_file)
             return session_urls
-        else:
-            do_replace(output_file)
+        do_replace(output_file)
     if debug:
         print(f"Filename: '{filename}'")
         print(f"Filename (md): '{filename_md}'")
@@ -381,8 +381,9 @@ def get_presentation(
 
 
 def get_session(
-    url, browser=None, replace=False, get_presentations=False, has_abstract=True
+    url, browser=None, has_abstract=True
 ):
+    
     if not browser:
         browser = start_browser()
 
@@ -434,12 +435,10 @@ def get_session(
         print(f"Filename: {output_file}")
 
     if path.isfile(output_file):
-        if not replace and not get_presentations:
-            if debug:
-                print("Returning")
+        if not overwrite:
+            print("Won't overwrite existing session file: " + output_file)
             return
-        elif replace:
-            do_replace(output_file)
+        do_replace(output_file)
 
     session_whenwhere = browser.find_element(By.CLASS_NAME, "field_ParentList_SlotData")
     session_daydate = session_whenwhere.find_element(By.CLASS_NAME, "SlotDate").text
@@ -513,7 +512,7 @@ def get_session(
     if field_ChildList_PaperSlot:
         field_ChildList_PaperSlot = field_ChildList_PaperSlot[0]
 
-    if not path.isfile(output_file) or replace:
+    if not path.isfile(output_file) or overwrite:
         with open(output_file, "w") as outFile:
             outFile.write(f"#seminar #AGU{thisYear} #AGU\n")
             outFile.write(f"# [{session_title}]({url})\n")
@@ -601,8 +600,7 @@ def get_session(
             paper_url = paper.find_element(By.TAG_NAME, "a").get_attribute("href")
 
             if (
-                get_presentations
-                and paper_title
+                paper_title
                 not in [
                     "Introduction",
                     "Conclusions",
@@ -685,8 +683,8 @@ def main():
             browser = start_browser()
     except:
         browser = start_browser()
-    for url in sys.argv[1:]:
 
+    for url in sys.argv[1:]:
         # AGU25 scheduler URLs start with this, but they can be translated into the old-style URLs
         if url.startswith("https://eppro01.ativ.me"):
             # Find the word after "tid=" in the url
@@ -696,13 +694,13 @@ def main():
 
         entrytype = url.split("/")[-2]
         if debug:
-            print(INDENT + f"entrytype: {entrytype}")
+            print(f"entrytype: {entrytype}")
 
         if entrytype == "Session":
             session_url = url
         else:
             session_url = get_presentation(url, [])[0]
-        get_session(session_url, browser, get_presentations=True, has_abstract=True)
+        get_session(session_url, browser, has_abstract=True)
 
 
 if __name__ == "__main__":
