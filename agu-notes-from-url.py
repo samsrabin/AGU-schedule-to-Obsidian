@@ -13,6 +13,8 @@ from selenium.webdriver.common.by import By
 from selenium.common.exceptions import TimeoutException
 from selenium.webdriver.chrome.service import Service
 
+from icalendar import Calendar
+
 delay = 60  # timeout, seconds
 
 browser = None
@@ -384,10 +386,8 @@ def get_presentation(
     return session_urls
 
 
-def get_session(
-    url, browser=None, has_abstract=True
-):
-    
+def get_session(url, browser=None, has_abstract=True):
+
     if not browser:
         browser = start_browser()
 
@@ -609,18 +609,14 @@ def get_session(
             paper_filename = paper_filename[:-3]
             paper_url = paper.find_element(By.TAG_NAME, "a").get_attribute("href")
 
-            if (
-                paper_title
-                not in [
-                    "Introduction",
-                    "Conclusions",
-                    "Q&A",
-                    "Discussion",
-                    "Panel Discussion",
-                    "Break",
-                ]
-                and not any(x in paper_title for x in ["Remarks", "Q & A"])
-            ):
+            if paper_title not in [
+                "Introduction",
+                "Conclusions",
+                "Q&A",
+                "Discussion",
+                "Panel Discussion",
+                "Break",
+            ] and not any(x in paper_title for x in ["Remarks", "Q & A"]):
                 paper_3rdcell_text = f"[[{paper_filename}]] ([URL]({paper_url}))"
                 try:
                     if not browser2:
@@ -688,6 +684,30 @@ def translate_ativ_to_confex(url_in):
     return url_out
 
 
+def parse_ics(ics_file):
+    """
+    Given an AGU schedule in the form of a .ics file, extract schedule URLs
+    """
+    if debug:
+        print(f"Getting URLs from file: '{ics_file}")
+    with open(ics_file, "rb") as f:
+        cal = Calendar.from_ical(f.read())
+
+    url_list = []
+    for component in cal.walk("VEVENT"):
+        start = component.decoded("dtstart")
+        description = component.get("DESCRIPTION")
+        url = re.search(r'(https://(?:agu\.confex\.com|eppro01\.ativ\.me)[^\s"]+)', description)
+        if not url:
+            summary = component.get("SUMMARY")
+            print(int(debug)*INDENT + f"Unable to get URL from event: {summary}")
+            continue
+        url = url.group(1)
+        url_list.append(url)
+
+    return url_list
+
+
 def main():
     try:
         if not browser:
@@ -695,7 +715,13 @@ def main():
     except:
         browser = start_browser()
 
-    for url in sys.argv[1:]:
+    url_list = sys.argv[1:]
+    if len(url_list) == 1 and url_list[0].endswith(".ics"):
+        url_list = parse_ics(url_list[0])
+    elif any(u.endswith(".ics") for u in url_list):
+        raise RuntimeError("Can only read .ics file if it's the only argument given")
+
+    for url in url_list:
         # AGU25 scheduler URLs start with this, but they can be translated into the old-style URLs
         if url.startswith("https://eppro01.ativ.me"):
             # Find the word after "tid=" in the url
