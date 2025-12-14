@@ -16,6 +16,7 @@ from selenium.webdriver.chrome.service import Service
 delay = 60  # timeout, seconds
 
 browser = None
+INDENT = 4 * " "
 
 
 def truncate_filename(filename):
@@ -658,6 +659,26 @@ def get_session(
         outFile.write("- \n\n\n")
 
 
+def translate_ativ_to_confex(url_in):
+    tid = re.search(r"tid=(\w+)", url_in)
+    if tid:
+        tid = tid.group(1)
+    else:
+        raise RuntimeError(f"No 'tid=' found in URL: {url_in}")
+    if tid.startswith("p"):
+        kind = "Paper"
+    elif "tid=s" in url_in:
+        kind = "Session"
+    else:
+        raise RuntimeError(f"Unrecognized tid: {tid}")
+    url_out = f"https://agu.confex.com/agu/agu25/meetingapp.cgi/{kind}/{tid[1:]}"
+    if debug:
+        print("Converted URL:")
+        print(INDENT + f"Was: {url_in}")
+        print(INDENT + f"Now: {url_out}")
+    return url_out
+
+
 def main():
     try:
         if not browser:
@@ -665,7 +686,18 @@ def main():
     except:
         browser = start_browser()
     for url in sys.argv[1:]:
+
+        # AGU25 scheduler URLs start with this, but they can be translated into the old-style URLs
+        if url.startswith("https://eppro01.ativ.me"):
+            # Find the word after "tid=" in the url
+            url = translate_ativ_to_confex(url)
+        else:
+            print(f"URL: {url}")
+
         entrytype = url.split("/")[-2]
+        if debug:
+            print(INDENT + f"entrytype: {entrytype}")
+
         if entrytype == "Session":
             session_url = url
         else:
