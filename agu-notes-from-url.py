@@ -700,8 +700,6 @@ def main():
         if url.startswith("https://eppro01.ativ.me"):
             # Find the word after "tid=" in the url
             url = translate_ativ_to_confex(url)
-        else:
-            print(f"URL: {url}")
 
         entrytype = url.split("/")[-2]
         if debug:
