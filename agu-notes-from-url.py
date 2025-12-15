@@ -479,52 +479,7 @@ def get_session(url, browser=None, has_abstract=True):
     session_leaders = browser.find_element(
         By.CLASS_NAME, "field_ChildList_Role"
     ).find_elements(By.CLASS_NAME, "RoleListItem")
-    person_names = []
-    person_affils_all = []
-    person_affils = []
-    person_nameaffils = []
-    for person in session_leaders:
-        person_name = person.find_element(By.TAG_NAME, "a").text
-        if person_name in person_names:
-            continue
-        person_nameaffil = person_name
-        person_affil = person.find_elements(By.CLASS_NAME, "Affiliation")
-        if not person_affil:
-            person_affil = None
-        else:
-            person_affil = person_affil[0].text.replace("\n", "; ")
-            person_nameaffil = person_nameaffil + person_affil
-        if person_nameaffil in person_nameaffils:
-            continue
-        person_nameaffils = person_nameaffils + [person_nameaffil]
-        person_names = person_names + [person_name]
-        person_affils_all = person_affils_all + [person_affil]
-        if person_affil:
-            if person_affil not in person_affils:
-                person_affils = person_affils + [person_affil]
-        # print(f"{person_name} ({person_affil})")
-    person_names2 = ""
-    for p, person in enumerate(person_names):
-        inst = person_affils_all[p]
-        if inst:
-            inst_num = person_affils.index(inst) + 1
-            person_names2 = person_names2 + f"{person} ({inst_num})"
-        else:
-            person_names2 = person_names2 + f"{person}"
-        if p < len(session_leaders) - 1:
-            person_names2 = person_names2 + ", "
-    affil_list = ""
-    for a, affil in enumerate(person_affils):
-        affil_list = affil_list + f"({a+1}) {affil}"
-        if a < len(person_affils) - 1:
-            affil_list = affil_list + ", "
-    if person_names2[-2:] == ", ":
-        person_names2 = person_names2[:-2]
-    if affil_list[-2:] == ", ":
-        affil_list = affil_list[:-2]
-    if debug:
-        print(person_names2)
-        print(affil_list)
+    person_names2, affil_list = get_people(session_leaders)
 
     # Some sessions (e.g., https://agu.confex.com/agu/fm21/meetingapp.cgi/Session/142602) have no children
     field_ChildList_PaperSlot = browser.find_elements(
@@ -673,6 +628,56 @@ def get_session(url, browser=None, has_abstract=True):
         else:
             outFile.write("\n\n## Session notes\n")
         outFile.write("- \n\n\n")
+
+
+def get_people(session_leaders):
+    person_names = []
+    person_affils_all = []
+    person_affils = []
+    person_nameaffils = []
+    for person in session_leaders:
+        person_name = person.find_element(By.TAG_NAME, "a").text
+        if person_name in person_names:
+            continue
+        person_nameaffil = person_name
+        person_affil = person.find_elements(By.CLASS_NAME, "Affiliation")
+        if not person_affil:
+            person_affil = None
+        else:
+            person_affil = person_affil[0].text.replace("\n", "; ")
+            person_nameaffil = person_nameaffil + person_affil
+        if person_nameaffil in person_nameaffils:
+            continue
+        person_nameaffils = person_nameaffils + [person_nameaffil]
+        person_names = person_names + [person_name]
+        person_affils_all = person_affils_all + [person_affil]
+        if person_affil:
+            if person_affil not in person_affils:
+                person_affils = person_affils + [person_affil]
+        # print(f"{person_name} ({person_affil})")
+    person_names2 = ""
+    for p, person in enumerate(person_names):
+        inst = person_affils_all[p]
+        if inst:
+            inst_num = person_affils.index(inst) + 1
+            person_names2 = person_names2 + f"{person} ({inst_num})"
+        else:
+            person_names2 = person_names2 + f"{person}"
+        if p < len(session_leaders) - 1:
+            person_names2 = person_names2 + ", "
+    affil_list = ""
+    for a, affil in enumerate(person_affils):
+        affil_list = affil_list + f"({a+1}) {affil}"
+        if a < len(person_affils) - 1:
+            affil_list = affil_list + ", "
+    if person_names2[-2:] == ", ":
+        person_names2 = person_names2[:-2]
+    if affil_list[-2:] == ", ":
+        affil_list = affil_list[:-2]
+    if debug:
+        print(person_names2)
+        print(affil_list)
+    return person_names2, affil_list
 
 
 def translate_ativ_to_confex(url_in):
