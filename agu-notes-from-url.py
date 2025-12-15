@@ -79,7 +79,7 @@ if path.exists(settings_file):
             raise ValueError(
                 f"Invalid date (expected format YYYY-MM-DD): {date_str}"
             ) from e
-        except e:
+        except Exception as e:
             raise RuntimeError("Error parsing date from settings") from e
 
 
@@ -612,14 +612,18 @@ def get_session(url, browser=None, has_abstract=True):
                         browser2 = start_browser()
                 except:
                     browser2 = start_browser()
-                get_presentation(
-                    paper_url,
-                    [],
-                    browser2,
-                    title=paper_title,
-                    has_abstract=has_abstract,
-                    dirname=dirname,
-                )
+                try:
+                    get_presentation(
+                        paper_url,
+                        [],
+                        browser2,
+                        title=paper_title,
+                        has_abstract=has_abstract,
+                        dirname=dirname,
+                    )
+                except Exception as e:
+                    raise RuntimeError(f"Failed to get presentation from {paper_url}") from e
+
             else:
                 paper_3rdcell_text = paper_title
 
@@ -786,8 +790,14 @@ def main():
         if entrytype == "Session":
             session_url = url
         else:
-            session_url = get_presentation(url, [])[0]
-        get_session(session_url, browser, has_abstract=True)
+            try:
+                session_url = get_presentation(url, [])[0]
+            except Exception as e:
+                raise RuntimeError(f"Failed to get presentation from {url}") from e
+        try:
+            get_session(session_url, browser, has_abstract=True)
+        except Exception as e:
+            raise RuntimeError(f"Failed to get session from {url}") from e
 
 
 if __name__ == "__main__":
