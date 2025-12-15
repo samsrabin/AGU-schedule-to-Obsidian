@@ -119,8 +119,7 @@ def summary_to_codetitle(summary, parent_code=None):
         code = re.findall(r"^[\d\-A-Z]+ ", summary)
     if code:
         title = summary.replace(code[0], "")
-        code = code[0].replace(" - ", "")
-        code = code.replace(" ", "")
+        code = code[0].replace(" - ", "").replace(" ", "")
     else:
         title = summary
     return code, title
