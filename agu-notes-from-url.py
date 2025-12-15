@@ -435,15 +435,21 @@ def get_session(url, browser=None, has_abstract=True):
 
     session_code = browser.find_elements(By.CLASS_NAME, "finalNumber")
     if not session_code:
-        if "Keynote" in browser.find_element(By.CLASS_NAME, "field_GoodType").text:
+        field_goodtype = browser.find_element(By.CLASS_NAME, "field_GoodType").text
+        if "Keynote" in field_goodtype:
             urlsplit = url.split("/")
             session_code = "K" + urlsplit[-1]
-        else:
-            raise RuntimeError("No session code found (class finalNumber)")
+        elif debug:
+            field_goodtype = re.sub(".*\n", "", field_goodtype)
+            print(
+                f"No session code found (class finalNumber, field_goodtype {field_goodtype})"
+            )
+            session_code = None
     else:
         session_code = session_code[0].text
     session_title = browser.find_element(By.CLASS_NAME, "favoriteItem").text
-    session_title = session_title.replace(session_code + " - ", "")
+    if session_code:
+        session_title = session_title.replace(session_code + " - ", "")
     print(f"Importing session: {session_title}")
     is_poster = "Poster" in session_title
 
