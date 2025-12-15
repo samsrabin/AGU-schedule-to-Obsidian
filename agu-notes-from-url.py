@@ -52,6 +52,7 @@ def resource_path(relative_path: str) -> str:
 thisYear = datetime.now().year
 debug = False
 overwrite = False
+filter_date = None  # Optional date to filter events
 
 # Read settings file
 settings_file = "settings.ini"
@@ -70,6 +71,16 @@ if path.exists(settings_file):
         debug = config.get("optional", "debug").lower() == "true"
     if config.has_option("optional", "overwrite"):
         overwrite = config.get("optional", "overwrite").lower() == "true"
+    if config.has_option("optional", "date"):
+        date_str = config.get("optional", "date")
+        try:
+            filter_date = datetime.strptime(date_str, "%Y-%m-%d").date()
+        except ValueError as e:
+            raise ValueError(
+                f"Invalid date (expected format YYYY-MM-DD): {date_str}"
+            ) from e
+        except e:
+            raise RuntimeError("Error parsing date from settings") from e
 
 
 def start_browser():
@@ -695,12 +706,25 @@ def parse_ics(ics_file):
 
     url_list = []
     for component in cal.walk("VEVENT"):
-        start = component.decoded("dtstart")
+        summary = component.get("SUMMARY")
+
+        # Filter by date if filter_date is set
+        if filter_date is not None:
+            # Get event date
+            start = component.decoded("dtstart")
+            # Convert start to date for comparison
+            event_date = start.date() if hasattr(start, "date") else start
+            if event_date != filter_date:
+                if debug:
+                    print(f"{INDENT}Skipping event on {event_date}: {summary}")
+                continue
+
         description = component.get("DESCRIPTION")
-        url = re.search(r'(https://(?:agu\.confex\.com|eppro01\.ativ\.me)[^\s"]+)', description)
+        url = re.search(
+            r'(https://(?:agu\.confex\.com|eppro01\.ativ\.me)[^\s"]+)', description
+        )
         if not url:
-            summary = component.get("SUMMARY")
-            print(int(debug)*INDENT + f"Unable to get URL from event: {summary}")
+            print(int(debug) * INDENT + f"Unable to get URL from event: {summary}")
             continue
         url = url.group(1)
         url_list.append(url)
