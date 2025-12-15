@@ -453,16 +453,28 @@ def get_session(url, browser=None, has_abstract=True):
     print(f"Importing session: {session_title}")
     is_poster = "Poster" in session_title
 
+    # Some sessions (e.g., https://agu.confex.com/agu/fm21/meetingapp.cgi/Session/142602) have no children, so they will be in the top level instead of their own subdirectory.
+    field_ChildList_PaperSlot = browser.find_elements(
+        By.CLASS_NAME, "field_ChildList_PaperSlot"
+    )
+    if field_ChildList_PaperSlot:
+        field_ChildList_PaperSlot = field_ChildList_PaperSlot[0]
+
     # Get directory name
     # Replace illegal characters for Obsidian filenames
-    dirname = codetitle_to_filename(session_code, session_title)
-    if path.exists(dirname) and not overwrite:
-        print(f"Won't overwrite existing session dir: '{dirname}'")
-        return
-    makedirs(dirname)
+    filename = codetitle_to_filename(session_code, session_title)
+    dirname = None
+    if field_ChildList_PaperSlot:
+        dirname = filename
+        if path.exists(dirname) and not overwrite:
+            print(f"Won't overwrite existing session dir: '{dirname}'")
+            return
+        makedirs(dirname, exist_ok=True)
 
     # Get filename
-    output_file = path.join(dirname, "_" + dirname + ".md")
+    output_file = filename + ".md"
+    if dirname:
+        output_file = path.join(dirname, "_" + output_file)
     output_file = truncate_filename(output_file)
     if debug:
         print(f"Filename: {output_file}")
