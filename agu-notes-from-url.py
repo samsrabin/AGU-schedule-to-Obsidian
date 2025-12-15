@@ -424,7 +424,8 @@ def get_session(url, browser=None, has_abstract=True):
         )
 
     except TimeoutException:
-        raise RuntimeError(f"Loading took too much time (limit {delay} seconds!")
+        print(f"Loading took too much time (limit {delay} seconds!")
+        return
     time.sleep(5)
 
     session_code = browser.find_elements(By.CLASS_NAME, "finalNumber")
