@@ -421,6 +421,15 @@ def get_session(url, browser=None, has_abstract=True):
 
     except TimeoutException:
         print(f"Loading took too much time (limit {delay} seconds!")
+        if debug:
+            for class_name in [
+                "favoriteItem",
+                "field_ParentList_SlotData",
+                "SlotDate",
+                "field_GoodType",
+            ]:
+                found = len(browser.find_elements(By.CLASS_NAME, class_name)) > 0
+                print(f"{class_name}: {found}")
         return
     time.sleep(5)
 
