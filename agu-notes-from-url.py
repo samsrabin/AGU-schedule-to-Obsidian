@@ -416,9 +416,6 @@ def get_session(url, browser=None, has_abstract=True):
             EC.presence_of_element_located((By.CLASS_NAME, "SlotDate"))
         )
         WebDriverWait(browser, delay).until(
-            EC.presence_of_element_located((By.CLASS_NAME, "Affiliation"))
-        )
-        WebDriverWait(browser, delay).until(
             EC.presence_of_element_located((By.CLASS_NAME, "field_GoodType"))
         )
 
@@ -476,24 +473,23 @@ def get_session(url, browser=None, has_abstract=True):
     session_abstract = session_abstract.replace("\n", "\n\n")
     session_abstract = session_abstract.replace("\n\n\n", "\n\n")
 
-    session_leaders = browser.find_element(
-        By.CLASS_NAME, "field_ChildList_Role"
-    ).find_elements(By.CLASS_NAME, "RoleListItem")
-    person_names2, affil_list = get_people(session_leaders)
-
-    # Some sessions (e.g., https://agu.confex.com/agu/fm21/meetingapp.cgi/Session/142602) have no children
-    field_ChildList_PaperSlot = browser.find_elements(
-        By.CLASS_NAME, "field_ChildList_PaperSlot"
-    )
-    if field_ChildList_PaperSlot:
-        field_ChildList_PaperSlot = field_ChildList_PaperSlot[0]
+    childlist_role = browser.find_elements(By.CLASS_NAME, "field_ChildList_Role")
+    if childlist_role:
+        session_leaders = childlist_role[0].find_elements(By.CLASS_NAME, "RoleListItem")
+        person_names2, affil_list = get_people(session_leaders)
+    else:
+        if debug:
+            print("field_ChildList_Role not found; i.e., no people/affiliations")
+        session_leaders = person_names2 = affil_list = None
 
     if not path.isfile(output_file) or overwrite:
         with open(output_file, "w") as outFile:
             outFile.write(f"#seminar #AGU{thisYear} #AGU\n")
             outFile.write(f"# [{session_title}]({url})\n")
-            outFile.write(f"{person_names2}\n")
-            outFile.write(f"{affil_list}\n\n")
+            if person_names2:
+                outFile.write(f"{person_names2}\n")
+            if affil_list:
+                outFile.write(f"{affil_list}\n\n")
             outFile.write(f"{session_time} {session_daydate}\n")
             outFile.write(f"{session_location}\n\n")
             outFile.write("## Description\n")
