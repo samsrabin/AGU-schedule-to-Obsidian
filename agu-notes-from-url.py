@@ -14,8 +14,6 @@ from selenium.webdriver.common.by import By
 from selenium.common.exceptions import TimeoutException
 from selenium.webdriver.chrome.service import Service
 
-from icalendar import Calendar
-
 delay = 60  # timeout, seconds
 
 browser = None
@@ -739,6 +737,8 @@ def parse_ics(ics_file, tz):
     Given an AGU schedule in the form of a .ics file, extract schedule URLs
     Converts event datetimes to the specified timezone
     """
+    from icalendar import Calendar
+
     if debug:
         print(f"Getting URLs from file: '{ics_file}")
     with open(ics_file, "rb") as f:
