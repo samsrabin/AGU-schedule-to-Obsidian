@@ -13,7 +13,7 @@ $ ./agu-notes-from-url https://agu.confex.com/agu/agu24/meetingapp.cgi/Session/2
 ```
 (If you get a permissions error, try doing `chmod +x agu-notes-from-url` and try again. You should only have to do that once.)
 
-You can also import from a .ics file, which the AGU scheduling webapp allows you to export your personal schedule as:
+You can also import from a .ics file, which [you can download from the AGU scheduling webapp](https://support.ativsoftware.com/support/solutions/articles/24000016677):
 ```shell
 $ ./agu-notes-from-url schedule-AGU25.ics
 ```
