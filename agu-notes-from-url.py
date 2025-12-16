@@ -13,9 +13,12 @@ from selenium.webdriver.common.by import By
 from selenium.common.exceptions import TimeoutException
 from selenium.webdriver.chrome.service import Service
 
+from icalendar import Calendar
+
 delay = 60  # timeout, seconds
 
 browser = None
+INDENT = 4 * " "
 
 
 def truncate_filename(filename):
@@ -48,6 +51,8 @@ def resource_path(relative_path: str) -> str:
 # Set defaults
 thisYear = datetime.now().year
 debug = False
+overwrite = False
+filter_date = None  # Optional date to filter events
 
 # Read settings file
 settings_file = "settings.ini"
@@ -64,6 +69,18 @@ if path.exists(settings_file):
         chdir(outDir)
     if config.has_option("optional", "debug"):
         debug = config.get("optional", "debug").lower() == "true"
+    if config.has_option("optional", "overwrite"):
+        overwrite = config.get("optional", "overwrite").lower() == "true"
+    if config.has_option("optional", "date"):
+        date_str = config.get("optional", "date")
+        try:
+            filter_date = datetime.strptime(date_str, "%Y-%m-%d").date()
+        except ValueError as e:
+            raise ValueError(
+                f"Invalid date (expected format YYYY-MM-DD): {date_str}"
+            ) from e
+        except Exception as e:
+            raise RuntimeError("Error parsing date from settings") from e
 
 
 def start_browser():
@@ -102,8 +119,7 @@ def summary_to_codetitle(summary, parent_code=None):
         code = re.findall(r"^[\d\-A-Z]+ ", summary)
     if code:
         title = summary.replace(code[0], "")
-        code = code[0].replace(" - ", "")
-        code = code.replace(" ", "")
+        code = code[0].replace(" - ", "").replace(" ", "")
     else:
         title = summary
     return code, title
@@ -152,10 +168,10 @@ def get_presentation(
     url,
     session_urls,
     browser=None,
-    replace=False,
     title=None,
     has_abstract=True,
     author_list2=None,
+    dirname=None,
 ):
     if not browser:
         browser = start_browser()
@@ -185,7 +201,9 @@ def get_presentation(
             except TimeoutException:
                 has_abstract = False
                 abstract_failed = True
-            remaining_time = max(1, delay - (datetime.now() - start_time).total_seconds())
+            remaining_time = max(
+                1, delay - (datetime.now() - start_time).total_seconds()
+            )
         if not author_list2:
             try:
                 WebDriverWait(browser, remaining_time).until(
@@ -194,9 +212,7 @@ def get_presentation(
             except TimeoutException:
                 pass
     except TimeoutException:
-        print(
-            f"    Loading took too much time (limit {delay} seconds). Url: {url}"
-        )
+        print(f"    Loading took too much time (limit {delay} seconds). Url: {url}")
         has_abstract = False
 
     # Parent session
@@ -215,6 +231,9 @@ def get_presentation(
     parent_session_filename = "_" + codetitle_to_filename(
         parent_session_code, parent_session_title
     )
+    if dirname is None:
+        dirname = parent_session_filename[1:]
+        makedirs(dirname, exist_ok=True)
     parent_session_url = parent2.get_property("href")
     if parent_session_url not in session_urls:
         session_urls = session_urls + [parent_session_url]
@@ -241,17 +260,15 @@ def get_presentation(
     filename = codetitle_to_filename(code, title)
     filename_md = filename + ".md"
     filename_md = truncate_filename(filename_md)
-    output_file = filename_md
+    output_file = path.join(dirname, filename_md)
     if debug:
         print(f"Output file: '{output_file}'")
 
     if path.isfile(output_file):
-        if not replace:
-            if debug:
-                print("Returning")
+        if not overwrite:
+            print(f"Won't overwrite existing paper file: '{output_file}'")
             return session_urls
-        else:
-            do_replace(output_file)
+        do_replace(output_file)
     if debug:
         print(f"Filename: '{filename}'")
         print(f"Filename (md): '{filename_md}'")
@@ -272,8 +289,8 @@ def get_presentation(
 
     # P-L Summary
     pl_summary = None
-    field_ExtendedAbstract = browser.find_elements(By.CLASS_NAME,
-        "field_ExtendedAbstract"
+    field_ExtendedAbstract = browser.find_elements(
+        By.CLASS_NAME, "field_ExtendedAbstract"
     )
     if len(field_ExtendedAbstract) > 0:
         pl_summary = field_ExtendedAbstract[0].text.replace(
@@ -342,7 +359,9 @@ def get_presentation(
     event_daydate = browser.find_element(By.CLASS_NAME, "SlotDate").text
     event_day = re.findall("^[A-Za-z]+", event_daydate)[0]
     event_date = event_daydate.replace(f"{event_day}, ", "")
-    event_time = browser.find_element(By.CLASS_NAME, "SlotTime").text.replace(" - ", "-")
+    event_time = browser.find_element(By.CLASS_NAME, "SlotTime").text.replace(
+        " - ", "-"
+    )
     location = browser.find_element(By.CLASS_NAME, "propertyInfo").text
     while location[0] == " ":
         location = location[1:]
@@ -377,9 +396,8 @@ def get_presentation(
     return session_urls
 
 
-def get_session(
-    url, browser=None, replace=False, get_presentations=False, has_abstract=True
-):
+def get_session(url, browser=None, has_abstract=True):
+
     if not browser:
         browser = start_browser()
 
@@ -398,50 +416,81 @@ def get_session(
             EC.presence_of_element_located((By.CLASS_NAME, "SlotDate"))
         )
         WebDriverWait(browser, delay).until(
-            EC.presence_of_element_located((By.CLASS_NAME, "Affiliation"))
-        )
-        WebDriverWait(browser, delay).until(
             EC.presence_of_element_located((By.CLASS_NAME, "field_GoodType"))
         )
 
     except TimeoutException:
-        raise RuntimeError(f"Loading took too much time (limit {delay} seconds!")
+        print(f"Loading took too much time (limit {delay} seconds!")
+        if debug:
+            for class_name in [
+                "favoriteItem",
+                "field_ParentList_SlotData",
+                "SlotDate",
+                "field_GoodType",
+            ]:
+                found = len(browser.find_elements(By.CLASS_NAME, class_name)) > 0
+                print(f"{class_name}: {found}")
+        return
     time.sleep(5)
 
     session_code = browser.find_elements(By.CLASS_NAME, "finalNumber")
     if not session_code:
-        if "Keynote" in browser.find_element(By.CLASS_NAME, "field_GoodType").text:
+        field_goodtype = browser.find_element(By.CLASS_NAME, "field_GoodType").text
+        if "Keynote" in field_goodtype:
             urlsplit = url.split("/")
             session_code = "K" + urlsplit[-1]
-        else:
-            raise RuntimeError("No session code found (class finalNumber)")
+        elif debug:
+            field_goodtype = re.sub(".*\n", "", field_goodtype)
+            print(
+                f"No session code found (class finalNumber, field_goodtype {field_goodtype})"
+            )
+            session_code = None
     else:
         session_code = session_code[0].text
     session_title = browser.find_element(By.CLASS_NAME, "favoriteItem").text
-    session_title = session_title.replace(session_code + " - ", "")
+    if session_code:
+        session_title = session_title.replace(session_code + " - ", "")
     print(f"Importing session: {session_title}")
     is_poster = "Poster" in session_title
 
+    # Some sessions (e.g., https://agu.confex.com/agu/fm21/meetingapp.cgi/Session/142602) have no children, so they will be in the top level instead of their own subdirectory.
+    field_ChildList_PaperSlot = browser.find_elements(
+        By.CLASS_NAME, "field_ChildList_PaperSlot"
+    )
+    if field_ChildList_PaperSlot:
+        field_ChildList_PaperSlot = field_ChildList_PaperSlot[0]
+
+    # Get directory name
     # Replace illegal characters for Obsidian filenames
     filename = codetitle_to_filename(session_code, session_title)
-    filename_md = filename + ".md"
-    output_file = "_" + filename_md
+    dirname = None
+    if field_ChildList_PaperSlot:
+        dirname = filename
+        if path.exists(dirname) and not overwrite:
+            print(f"Won't overwrite existing session dir: '{dirname}'")
+            return
+        makedirs(dirname, exist_ok=True)
+
+    # Get filename
+    output_file = filename + ".md"
+    if dirname:
+        output_file = path.join(dirname, "_" + output_file)
     output_file = truncate_filename(output_file)
     if debug:
         print(f"Filename: {output_file}")
 
     if path.isfile(output_file):
-        if not replace and not get_presentations:
-            if debug:
-                print("Returning")
+        if not overwrite:
+            print(f"Won't overwrite existing session file: '{output_file}'")
             return
-        elif replace:
-            do_replace(output_file)
+        do_replace(output_file)
 
     session_whenwhere = browser.find_element(By.CLASS_NAME, "field_ParentList_SlotData")
     session_daydate = session_whenwhere.find_element(By.CLASS_NAME, "SlotDate").text
     session_time = session_whenwhere.find_element(By.CLASS_NAME, "SlotTime").text
-    session_location = session_whenwhere.find_element(By.CLASS_NAME, "propertyInfo").text
+    session_location = session_whenwhere.find_element(
+        By.CLASS_NAME, "propertyInfo"
+    ).text
     if debug:
         print(session_daydate)
         print(session_time)
@@ -451,69 +500,23 @@ def get_session(
     session_abstract = session_abstract.replace("\n", "\n\n")
     session_abstract = session_abstract.replace("\n\n\n", "\n\n")
 
-    session_leaders = browser.find_element(By.CLASS_NAME,
-        "field_ChildList_Role"
-    ).find_elements(By.CLASS_NAME, "RoleListItem")
-    person_names = []
-    person_affils_all = []
-    person_affils = []
-    person_nameaffils = []
-    for person in session_leaders:
-        person_name = person.find_element(By.TAG_NAME, "a").text
-        if person_name in person_names:
-            continue
-        person_nameaffil = person_name
-        person_affil = person.find_elements(By.CLASS_NAME, "Affiliation")
-        if not person_affil:
-            person_affil = None
-        else:
-            person_affil = person_affil[0].text.replace("\n", "; ")
-            person_nameaffil = person_nameaffil + person_affil
-        if person_nameaffil in person_nameaffils:
-            continue
-        person_nameaffils = person_nameaffils + [person_nameaffil]
-        person_names = person_names + [person_name]
-        person_affils_all = person_affils_all + [person_affil]
-        if person_affil:
-            if person_affil not in person_affils:
-                person_affils = person_affils + [person_affil]
-        # print(f"{person_name} ({person_affil})")
-    person_names2 = ""
-    for p, person in enumerate(person_names):
-        inst = person_affils_all[p]
-        if inst:
-            inst_num = person_affils.index(inst) + 1
-            person_names2 = person_names2 + f"{person} ({inst_num})"
-        else:
-            person_names2 = person_names2 + f"{person}"
-        if p < len(session_leaders) - 1:
-            person_names2 = person_names2 + ", "
-    affil_list = ""
-    for a, affil in enumerate(person_affils):
-        affil_list = affil_list + f"({a+1}) {affil}"
-        if a < len(person_affils) - 1:
-            affil_list = affil_list + ", "
-    if person_names2[-2:] == ", ":
-        person_names2 = person_names2[:-2]
-    if affil_list[-2:] == ", ":
-        affil_list = affil_list[:-2]
-    if debug:
-        print(person_names2)
-        print(affil_list)
+    childlist_role = browser.find_elements(By.CLASS_NAME, "field_ChildList_Role")
+    if childlist_role:
+        session_leaders = childlist_role[0].find_elements(By.CLASS_NAME, "RoleListItem")
+        person_names2, affil_list = get_people(session_leaders)
+    else:
+        if debug:
+            print("field_ChildList_Role not found; i.e., no people/affiliations")
+        session_leaders = person_names2 = affil_list = None
 
-    # Some sessions (e.g., https://agu.confex.com/agu/fm21/meetingapp.cgi/Session/142602) have no children
-    field_ChildList_PaperSlot = browser.find_elements(By.CLASS_NAME,
-        "field_ChildList_PaperSlot"
-    )
-    if field_ChildList_PaperSlot:
-        field_ChildList_PaperSlot = field_ChildList_PaperSlot[0]
-
-    if not path.isfile(output_file) or replace:
+    if not path.isfile(output_file) or overwrite:
         with open(output_file, "w") as outFile:
             outFile.write(f"#seminar #AGU{thisYear} #AGU\n")
             outFile.write(f"# [{session_title}]({url})\n")
-            outFile.write(f"{person_names2}\n")
-            outFile.write(f"{affil_list}\n\n")
+            if person_names2:
+                outFile.write(f"{person_names2}\n")
+            if affil_list:
+                outFile.write(f"{affil_list}\n\n")
             outFile.write(f"{session_time} {session_daydate}\n")
             outFile.write(f"{session_location}\n\n")
             outFile.write("## Description\n")
@@ -535,8 +538,8 @@ def get_session(
 
     is_panel_discussion = False
     if field_ChildList_PaperSlot:
-        session_papers = field_ChildList_PaperSlot.find_elements(By.CLASS_NAME,
-            "entryInformation"
+        session_papers = field_ChildList_PaperSlot.find_elements(
+            By.CLASS_NAME, "entryInformation"
         )
         for paper in session_papers:
             paper_starttime = paper.find_elements(By.CLASS_NAME, "SlotTime")
@@ -595,32 +598,32 @@ def get_session(
             paper_filename = paper_filename[:-3]
             paper_url = paper.find_element(By.TAG_NAME, "a").get_attribute("href")
 
-            if (
-                get_presentations
-                and paper_title
-                not in [
-                    "Introduction",
-                    "Conclusions",
-                    "Q&A",
-                    "Discussion",
-                    "Panel Discussion",
-                    "Break",
-                ]
-                and not any(x in paper_title for x in ["Remarks", "Q & A"])
-            ):
+            if paper_title not in [
+                "Introduction",
+                "Conclusions",
+                "Q&A",
+                "Discussion",
+                "Panel Discussion",
+                "Break",
+            ] and not any(x in paper_title for x in ["Remarks", "Q & A"]):
                 paper_3rdcell_text = f"[[{paper_filename}]] ([URL]({paper_url}))"
                 try:
                     if not browser2:
                         browser2 = start_browser()
                 except:
                     browser2 = start_browser()
-                get_presentation(
-                    paper_url,
-                    [],
-                    browser2,
-                    title=paper_title,
-                    has_abstract=has_abstract,
-                )
+                try:
+                    get_presentation(
+                        paper_url,
+                        [],
+                        browser2,
+                        title=paper_title,
+                        has_abstract=has_abstract,
+                        dirname=dirname,
+                    )
+                except Exception as e:
+                    raise RuntimeError(f"Failed to get presentation from {paper_url}") from e
+
             else:
                 paper_3rdcell_text = paper_title
 
@@ -654,19 +657,147 @@ def get_session(
         outFile.write("- \n\n\n")
 
 
+def get_people(session_leaders):
+    person_names = []
+    person_affils_all = []
+    person_affils = []
+    person_nameaffils = []
+    for person in session_leaders:
+        person_name = person.find_element(By.TAG_NAME, "a").text
+        if person_name in person_names:
+            continue
+        person_nameaffil = person_name
+        person_affil = person.find_elements(By.CLASS_NAME, "Affiliation")
+        if not person_affil:
+            person_affil = None
+        else:
+            person_affil = person_affil[0].text.replace("\n", "; ")
+            person_nameaffil = person_nameaffil + person_affil
+        if person_nameaffil in person_nameaffils:
+            continue
+        person_nameaffils = person_nameaffils + [person_nameaffil]
+        person_names = person_names + [person_name]
+        person_affils_all = person_affils_all + [person_affil]
+        if person_affil:
+            if person_affil not in person_affils:
+                person_affils = person_affils + [person_affil]
+        # print(f"{person_name} ({person_affil})")
+    person_names2 = ""
+    for p, person in enumerate(person_names):
+        inst = person_affils_all[p]
+        if inst:
+            inst_num = person_affils.index(inst) + 1
+            person_names2 = person_names2 + f"{person} ({inst_num})"
+        else:
+            person_names2 = person_names2 + f"{person}"
+        if p < len(session_leaders) - 1:
+            person_names2 = person_names2 + ", "
+    affil_list = ""
+    for a, affil in enumerate(person_affils):
+        affil_list = affil_list + f"({a+1}) {affil}"
+        if a < len(person_affils) - 1:
+            affil_list = affil_list + ", "
+    if person_names2[-2:] == ", ":
+        person_names2 = person_names2[:-2]
+    if affil_list[-2:] == ", ":
+        affil_list = affil_list[:-2]
+    if debug:
+        print(person_names2)
+        print(affil_list)
+    return person_names2, affil_list
+
+
+def translate_ativ_to_confex(url_in):
+    tid = re.search(r"tid=(\w+)", url_in)
+    if tid:
+        tid = tid.group(1)
+    else:
+        raise RuntimeError(f"No 'tid=' found in URL: {url_in}")
+    if tid.startswith("p"):
+        kind = "Paper"
+    elif "tid=s" in url_in:
+        kind = "Session"
+    else:
+        raise RuntimeError(f"Unrecognized tid: {tid}")
+    url_out = f"https://agu.confex.com/agu/agu25/meetingapp.cgi/{kind}/{tid[1:]}"
+    if debug:
+        print("Converted URL:")
+        print(INDENT + f"Was: {url_in}")
+        print(INDENT + f"Now: {url_out}")
+    return url_out
+
+
+def parse_ics(ics_file):
+    """
+    Given an AGU schedule in the form of a .ics file, extract schedule URLs
+    """
+    if debug:
+        print(f"Getting URLs from file: '{ics_file}")
+    with open(ics_file, "rb") as f:
+        cal = Calendar.from_ical(f.read())
+
+    url_list = []
+    for component in cal.walk("VEVENT"):
+        summary = component.get("SUMMARY")
+
+        # Filter by date if filter_date is set
+        if filter_date is not None:
+            # Get event date
+            start = component.decoded("dtstart")
+            # Convert start to date for comparison
+            event_date = start.date() if hasattr(start, "date") else start
+            if event_date != filter_date:
+                if debug:
+                    print(f"{INDENT}Skipping event on {event_date}: {summary}")
+                continue
+
+        description = component.get("DESCRIPTION")
+        url = re.search(
+            r'(https://(?:agu\.confex\.com|eppro01\.ativ\.me)[^\s"]+)', description
+        )
+        if not url:
+            print(int(debug) * INDENT + f"Unable to get URL from event: {summary}")
+            continue
+        url = url.group(1)
+        url_list.append(url)
+
+    return url_list
+
+
 def main():
     try:
         if not browser:
             browser = start_browser()
     except:
         browser = start_browser()
-    for url in sys.argv[1:]:
+
+    url_list = sys.argv[1:]
+    if len(url_list) == 1 and url_list[0].endswith(".ics"):
+        url_list = parse_ics(url_list[0])
+    elif any(u.endswith(".ics") for u in url_list):
+        raise RuntimeError("Can only read .ics file if it's the only argument given")
+
+    for url in url_list:
+        # AGU25 scheduler URLs start with this, but they can be translated into the old-style URLs
+        if url.startswith("https://eppro01.ativ.me"):
+            # Find the word after "tid=" in the url
+            url = translate_ativ_to_confex(url)
+
         entrytype = url.split("/")[-2]
+        if debug:
+            print(f"entrytype: {entrytype}")
+
         if entrytype == "Session":
             session_url = url
         else:
-            session_url = get_presentation(url, [])[0]
-        get_session(session_url, browser, get_presentations=True, has_abstract=True)
+            try:
+                session_url = get_presentation(url, [])[0]
+            except Exception as e:
+                raise RuntimeError(f"Failed to get presentation from {url}") from e
+        try:
+            get_session(session_url, browser, has_abstract=True)
+        except Exception as e:
+            raise RuntimeError(f"Failed to get session from {url}") from e
 
 
 if __name__ == "__main__":
