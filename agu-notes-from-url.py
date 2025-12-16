@@ -14,7 +14,7 @@ from selenium.webdriver.common.by import By
 from selenium.common.exceptions import TimeoutException
 from selenium.webdriver.chrome.service import Service
 
-delay = 60  # timeout, seconds
+delay = 10  # timeout, seconds
 
 browser = None
 INDENT = 4 * " "
@@ -80,6 +80,7 @@ if path.exists(settings_file):
             ) from e
         except Exception as e:
             raise RuntimeError("Error parsing date from settings") from e
+
 
 def get_tz(this_year):
     if this_year in [2022]:
@@ -790,7 +791,9 @@ def parse_ics(ics_file, tz):
             r'(https://(?:agu\.confex\.com|eppro01\.ativ\.me)[^\s"]+)', description
         )
         if not url:
-            print((1 + int(debug)) * INDENT + f"Unable to get URL from event: {summary}")
+            print(
+                (1 + int(debug)) * INDENT + f"Unable to get URL from event: {summary}"
+            )
             continue
         url = url.group(1)
         url_list.append(url)
