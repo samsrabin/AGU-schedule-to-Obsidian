@@ -708,17 +708,17 @@ def get_people(session_leaders):
 
 
 def translate_ativ_to_confex(url_in):
-    tid = re.search(r"tid=(\w+)", url_in)
+    tid = re.search(r"&t?id=(\w+)", url_in)
     if tid:
         tid = tid.group(1)
     else:
-        raise RuntimeError(f"No 'tid=' found in URL: {url_in}")
+        raise RuntimeError(f"No 'id=' found in URL: {url_in}")
     if tid.startswith("p"):
         kind = "Paper"
-    elif "tid=s" in url_in:
+    elif "id=s" in url_in:
         kind = "Session"
     else:
-        raise RuntimeError(f"Unrecognized tid: {tid}")
+        raise RuntimeError(f"Unrecognized URL id '{tid}' extracted from URL {url_in}")
     url_out = f"https://agu.confex.com/agu/agu25/meetingapp.cgi/{kind}/{tid[1:]}"
     if debug:
         print("Converted URL:")
