@@ -82,25 +82,27 @@ if path.exists(settings_file):
         except Exception as e:
             raise RuntimeError("Error parsing date from settings") from e
 
+def get_tz(this_year):
+    if this_year in [2022]:
+        tz = "America/Chicago"
+    elif this_year in [2023]:
+        tz = "US/Pacific"
+    elif this_year in [2024]:
+        tz = "US/Eastern"
+    elif this_year in [2025]:
+        tz = "US/Central"
+    else:
+        raise KeyError(f"What time zone for AGU {this_year}?")
+    return tz
 
-def start_browser():
+
+def start_browser(tz):
     # Selenium will download the necessary version of Chrome For Testing
     service = Service()
     options = webdriver.ChromeOptions()
     if not debug:
         options.add_argument("--headless")  # Invisible window
     browser = webdriver.Chrome(service=service, options=options)
-
-    if thisYear in [2022]:
-        tz = "America/Chicago"
-    elif thisYear in [2023]:
-        tz = "US/Pacific"
-    elif thisYear in [2024]:
-        tz = "US/Eastern"
-    elif thisYear in [2025]:
-        tz = "US/Central"
-    else:
-        raise KeyError(f"What time zone for AGU {thisYear}?")
 
     tz_params = {"timezoneId": tz}
     browser.execute_cdp_cmd("Emulation.setTimezoneOverride", tz_params)
@@ -167,6 +169,7 @@ def find_or_none(driver, classname):
 def get_presentation(
     url,
     session_urls,
+    tz,
     browser=None,
     title=None,
     has_abstract=True,
@@ -174,7 +177,7 @@ def get_presentation(
     dirname=None,
 ):
     if not browser:
-        browser = start_browser()
+        browser = start_browser(tz)
 
     printed_title = False
     if title:
@@ -396,10 +399,10 @@ def get_presentation(
     return session_urls
 
 
-def get_session(url, browser=None, has_abstract=True):
+def get_session(url, tz, browser=None, has_abstract=True):
 
     if not browser:
-        browser = start_browser()
+        browser = start_browser(tz)
 
     if debug:
         print("URL: " + url)
@@ -609,13 +612,14 @@ def get_session(url, browser=None, has_abstract=True):
                 paper_3rdcell_text = f"[[{paper_filename}]] ([URL]({paper_url}))"
                 try:
                     if not browser2:
-                        browser2 = start_browser()
+                        browser2 = start_browser(tz)
                 except:
-                    browser2 = start_browser()
+                    browser2 = start_browser(tz)
                 try:
                     get_presentation(
                         paper_url,
                         [],
+                        tz,
                         browser2,
                         title=paper_title,
                         has_abstract=has_abstract,
@@ -765,11 +769,12 @@ def parse_ics(ics_file):
 
 
 def main():
+    tz = get_tz(thisYear)
     try:
         if not browser:
-            browser = start_browser()
+            browser = start_browser(tz)
     except:
-        browser = start_browser()
+        browser = start_browser(tz)
 
     url_list = sys.argv[1:]
     if len(url_list) == 1 and url_list[0].endswith(".ics"):
@@ -791,11 +796,11 @@ def main():
             session_url = url
         else:
             try:
-                session_url = get_presentation(url, [])[0]
+                session_url = get_presentation(url, [], tz)[0]
             except Exception as e:
                 raise RuntimeError(f"Failed to get presentation from {url}") from e
         try:
-            get_session(session_url, browser, has_abstract=True)
+            get_session(session_url, tz, browser, has_abstract=True)
         except Exception as e:
             raise RuntimeError(f"Failed to get session from {url}") from e
 
