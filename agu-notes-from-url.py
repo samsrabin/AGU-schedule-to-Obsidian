@@ -2,6 +2,7 @@ import regex as re
 import time
 from os import path, rename, remove, chdir, makedirs
 from datetime import datetime
+from zoneinfo import ZoneInfo
 from zipfile import ZipFile
 import sys
 from configparser import ConfigParser
@@ -626,7 +627,9 @@ def get_session(url, tz, browser=None, has_abstract=True):
                         dirname=dirname,
                     )
                 except Exception as e:
-                    raise RuntimeError(f"Failed to get presentation from {paper_url}") from e
+                    raise RuntimeError(
+                        f"Failed to get presentation from {paper_url}"
+                    ) from e
 
             else:
                 paper_3rdcell_text = paper_title
@@ -731,28 +734,55 @@ def translate_ativ_to_confex(url_in):
     return url_out
 
 
-def parse_ics(ics_file):
+def parse_ics(ics_file, tz):
     """
     Given an AGU schedule in the form of a .ics file, extract schedule URLs
+    Converts event datetimes to the specified timezone
     """
     if debug:
         print(f"Getting URLs from file: '{ics_file}")
     with open(ics_file, "rb") as f:
         cal = Calendar.from_ical(f.read())
 
+    # Create timezone object for conversion
+    target_tz = ZoneInfo(tz)
+
     url_list = []
     for component in cal.walk("VEVENT"):
         summary = component.get("SUMMARY")
 
+        # Get event start time and convert to target timezone
+        start = component.decoded("dtstart")
+
+        # Convert to target timezone if it's a datetime object
+        if hasattr(start, "astimezone"):
+            # It's a datetime with timezone info
+            start_converted = start.astimezone(target_tz)
+        elif hasattr(start, "replace") and not hasattr(start, "hour"):
+            # It's a date object (no time component)
+            start_converted = start
+        else:
+            # It's a naive datetime, assume it's already in target timezone
+            start_converted = (
+                start.replace(tzinfo=target_tz) if hasattr(start, "replace") else start
+            )
+
+        if debug:
+            print(f"{INDENT}Event: {summary}")
+            print(f"{2*INDENT}Original time: {start}")
+            print(f"{2*INDENT}Converted to {tz}: {start_converted}")
+
         # Filter by date if filter_date is set
         if filter_date is not None:
-            # Get event date
-            start = component.decoded("dtstart")
             # Convert start to date for comparison
-            event_date = start.date() if hasattr(start, "date") else start
+            event_date = (
+                start_converted.date()
+                if hasattr(start_converted, "date")
+                else start_converted
+            )
             if event_date != filter_date:
                 if debug:
-                    print(f"{INDENT}Skipping event on {event_date}: {summary}")
+                    print(f"{2*INDENT}Skipping because not on {filter_date}: {summary}")
                 continue
 
         description = component.get("DESCRIPTION")
@@ -760,7 +790,7 @@ def parse_ics(ics_file):
             r'(https://(?:agu\.confex\.com|eppro01\.ativ\.me)[^\s"]+)', description
         )
         if not url:
-            print(int(debug) * INDENT + f"Unable to get URL from event: {summary}")
+            print((1 + int(debug)) * INDENT + f"Unable to get URL from event: {summary}")
             continue
         url = url.group(1)
         url_list.append(url)
@@ -778,7 +808,7 @@ def main():
 
     url_list = sys.argv[1:]
     if len(url_list) == 1 and url_list[0].endswith(".ics"):
-        url_list = parse_ics(url_list[0])
+        url_list = parse_ics(url_list[0], tz)
     elif any(u.endswith(".ics") for u in url_list):
         raise RuntimeError("Can only read .ics file if it's the only argument given")
 
